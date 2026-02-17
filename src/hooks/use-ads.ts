@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAds } from "@/lib/apify";
+import { fetchAds } from "@/lib/scraper-creators";
 import { mockAds } from "@/data/mockAds";
 
 export const useAds = () => {

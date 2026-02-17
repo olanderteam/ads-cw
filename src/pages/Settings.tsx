@@ -13,8 +13,8 @@ const Settings = () => {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        const savedToken = localStorage.getItem("apify_token");
-        if (savedToken) setToken(savedToken);
+        const savedKey = localStorage.getItem("scraper_creators_key");
+        if (savedKey) setToken(savedKey);
     }, []);
 
     const handleSave = () => {
@@ -22,17 +22,17 @@ const Settings = () => {
             toast.error("Please enter a valid token");
             return;
         }
-        localStorage.setItem("apify_token", token.trim());
-        toast.success("Token saved successfully!");
+        localStorage.setItem("scraper_creators_key", token.trim());
+        toast.success("API Key saved successfully!");
 
         // Invalidate queries to force re-fetch with new token
         queryClient.invalidateQueries({ queryKey: ["ads"] });
     };
 
     const handleClear = () => {
-        localStorage.removeItem("apify_token");
+        localStorage.removeItem("scraper_creators_key");
         setToken("");
-        toast.info("Token removed.");
+        toast.info("API Key removed.");
         queryClient.invalidateQueries({ queryKey: ["ads"] });
     };
 
@@ -51,24 +51,24 @@ const Settings = () => {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Apify Configuration</CardTitle>
+                        <CardTitle>Scraper Creators Configuration</CardTitle>
                         <CardDescription>
-                            Enter your Apify API Token to fetch real ads. If left empty, the app will try to use the environment variable.
+                            Enter your Scraper Creators API Key to fetch real ads. Using default key if empty.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="token">API Token</Label>
+                            <Label htmlFor="token">API Key</Label>
                             <Input
                                 id="token"
                                 type="password"
                                 value={token}
                                 onChange={(e) => setToken(e.target.value)}
-                                placeholder="apify_api_..."
+                                placeholder="Enter API Key..."
                             />
                         </div>
                         <div className="flex gap-2">
-                            <Button onClick={handleSave}>Save Token</Button>
+                            <Button onClick={handleSave}>Save Key</Button>
                             <Button variant="outline" onClick={handleClear}>Clear</Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
