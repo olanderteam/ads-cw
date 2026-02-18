@@ -30,27 +30,34 @@ interface ScraperCreatorAdRaw {
 }
 
 export const fetchAds = async (): Promise<Ad[]> => {
-    // Priority: LocalStorage > Constant > Environment Variable (if we had one)
+    // Priority: LocalStorage > Constant
     const apiKey = localStorage.getItem("scraper_creators_key") || DEFAULT_API_KEY;
 
-    if (!apiKey) {
-        console.warn("Scraper Creators API Key missing");
-        return [];
-    }
-
     try {
-        const url = `https://api.scrapecreators.com/v1/facebook/adLibrary/company/ads?pageId=${PAGE_ID}&country=BR&active_status=all`;
+        // Construct query parameters for proxy endpoint
+        const params = new URLSearchParams({
+            pageId: PAGE_ID,
+            country: "BR",
+            active_status: "all"
+        });
+
+        // Include API key as query parameter if available
+        if (apiKey) {
+            params.append("apiKey", apiKey);
+        }
+
+        // Call proxy endpoint instead of direct API
+        const url = `/api/ads?${params.toString()}`;
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'x-api-key': apiKey,
                 'Content-Type': 'application/json'
             }
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch ads from Scraper Creators: ${response.statusText}`);
+            throw new Error(`Failed to fetch ads from proxy: ${response.statusText}`);
         }
 
         const data = await response.json();

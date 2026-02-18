@@ -60,6 +60,40 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Backend Proxy for CORS Fix
+
+This project uses a Vercel Serverless Function to proxy requests to the Scraper Creators API, solving CORS issues in production.
+
+### Architecture
+
+- **Frontend**: Makes requests to `/api/ads` with query parameters
+- **Proxy Function**: `/api/ads.ts` forwards requests to Scraper Creators API
+- **External API**: Scraper Creators API provides Meta ads data
+
+### Environment Variables
+
+For the proxy to work in production, you need to set the following environment variable in Vercel:
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings > Environment Variables**
+3. Add: `SCRAPER_CREATORS_API_KEY` with your API key value
+4. Deploy or redeploy your application
+
+### Local Development
+
+1. Copy `.env.example` to `.env`
+2. Add your `SCRAPER_CREATORS_API_KEY` value
+3. Run `npm run dev`
+
+The frontend can optionally pass `apiKey` as a query parameter to override the server-side key for testing.
+
+### Backward Compatibility
+
+- The `fetchAds()` function maintains the same signature and return type
+- All data transformation logic remains unchanged
+- React Query configuration (staleTime, retry) is preserved
+- localStorage API key fallback is maintained for development
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
