@@ -1,0 +1,141 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+export default async function handler(
+  request: VercelRequest,
+  response: VercelResponse
+) {
+  // Set CORS headers
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle OPTIONS preflight
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
+  }
+
+  // Validate HTTP method
+  if (request.method !== 'GET') {
+    return response.status(405).json({
+      error: 'INVALID_METHOD',
+      message: 'Only GET requests are allowed.'
+    });
+  }
+
+  // Get environment variables
+  const accessToken = process.env.META_ACCESS_TOKEN;
+  const adAccountId = process.env.META_AD_ACCOUNT_ID;
+  const apiVersion = process.env.META_API_VERSION || 'v21.0';
+
+  if (!accessToken || !adAccountId) {
+    return response.status(500).json({
+      error: 'CONFIGURATION_ERROR',
+      message: 'META_ACCESS_TOKEN and META_AD_ACCOUNT_ID must be configured.'
+    });
+  }
+
+  // Extract query parameters
+  const { status, dateFrom, dateTo } = request.query;
+
+  try {
+    // Build Meta Graph API URL
+    const baseUrl = `https://graph.facebook.com/${apiVersion}/${adAccountId}/ads`;
+    
+    // Fields to request
+    const fields = [
+      'id',
+      'name',
+      'status',
+      'effective_status',
+      'created_time',
+      'updated_time',
+      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type}',
+      'insights.date_preset(last_30d){impressions,clicks,spend,ctr,actions,cost_per_action_type,account_currency}'
+    ].join(',');
+
+    const params = new URLSearchParams({
+      access_token: accessToken,
+      fields: fields,
+      limit: '100'
+    });
+
+    // Add status filter if provided
+    if (status && status !== 'all') {
+      const effectiveStatus = status === 'active' ? 'ACTIVE' : 'PAUSED';
+      params.append('filtering', JSON.stringify([{
+        field: 'effective_status',
+        operator: 'IN',
+        value: [effectiveStatus]
+      }]));
+    }
+
+    // Add date range filter if provided
+    if (dateFrom && dateTo) {
+      params.append('time_range', JSON.stringify({
+        since: dateFrom,
+        until: dateTo
+      }));
+    }
+
+    const url = `${baseUrl}?${params.toString()}`;
+
+    // Make request to Meta Graph API
+    const metaResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!metaResponse.ok) {
+      const errorData = await metaResponse.json().catch(() => ({}));
+      
+      console.error('Meta API error:', errorData);
+
+      // Handle specific Meta API errors
+      if (metaResponse.status === 401) {
+        return response.status(401).json({
+          error: 'INVALID_TOKEN',
+          message: 'Token de acesso inválido ou expirado.',
+          details: errorData
+        });
+      }
+
+      if (metaResponse.status === 403) {
+        return response.status(403).json({
+          error: 'PERMISSION_DENIED',
+          message: 'Sem permissão para acessar esta conta de anúncios.',
+          details: errorData
+        });
+      }
+
+      if (metaResponse.status === 429) {
+        return response.status(429).json({
+          error: 'RATE_LIMIT',
+          message: 'Limite de requisições excedido.',
+          details: errorData
+        });
+      }
+
+      return response.status(502).json({
+        error: 'META_API_ERROR',
+        message: errorData.error?.message || 'Erro ao buscar dados da Meta API',
+        details: errorData
+      });
+    }
+
+    const data = await metaResponse.json();
+    
+    return response.status(200).json({
+      ads: data.data || [],
+      paging: data.paging || null
+    });
+
+  } catch (error) {
+    console.error('Proxy error:', error);
+    return response.status(500).json({
+      error: 'INTERNAL_ERROR',
+      message: error instanceof Error ? error.message : 'Erro interno do servidor'
+    });
+  }
+}
