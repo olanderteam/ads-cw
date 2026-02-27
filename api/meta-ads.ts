@@ -37,11 +37,28 @@ export default async function handler(
   // Extract query parameters
   const { status, dateFrom, dateTo } = request.query;
 
+  // Validate date format (YYYY-MM-DD) if provided
+  const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateFrom && typeof dateFrom === 'string' && !dateFormatRegex.test(dateFrom)) {
+    return response.status(400).json({
+      error: 'INVALID_DATE_FORMAT',
+      message: 'dateFrom must be in YYYY-MM-DD format.'
+    });
+  }
+  if (dateTo && typeof dateTo === 'string' && !dateFormatRegex.test(dateTo)) {
+    return response.status(400).json({
+      error: 'INVALID_DATE_FORMAT',
+      message: 'dateTo must be in YYYY-MM-DD format.'
+    });
+  }
+
   try {
     // Build Meta Graph API URL
     const baseUrl = `https://graph.facebook.com/${apiVersion}/${adAccountId}/ads`;
     
-    // Fields to request - use custom date range instead of date_preset
+    // Fields to request
+    // NOTE: time_range is applied in the insights field to filter metrics by date range.
+    // DO NOT use time_range as a query parameter - that filters ads by creation date, NOT insights metrics.
     const fields = [
       'id',
       'name',
@@ -69,15 +86,10 @@ export default async function handler(
       }]));
     }
 
-    // Add date range filter if provided
-    if (dateFrom && dateTo) {
-      params.append('time_range', JSON.stringify({
-        since: dateFrom,
-        until: dateTo
-      }));
-    }
-
     const url = `${baseUrl}?${params.toString()}`;
+    
+    // Log final constructed URL for debugging
+    console.log('Meta API Request URL:', url);
 
     // Fetch all pages of ads
     let allAds: any[] = [];
