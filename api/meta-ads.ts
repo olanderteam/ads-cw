@@ -79,55 +79,67 @@ export default async function handler(
 
     const url = `${baseUrl}?${params.toString()}`;
 
-    // Make request to Meta Graph API
-    const metaResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!metaResponse.ok) {
-      const errorData = await metaResponse.json().catch(() => ({}));
-      
-      console.error('Meta API error:', errorData);
-
-      // Handle specific Meta API errors
-      if (metaResponse.status === 401) {
-        return response.status(401).json({
-          error: 'INVALID_TOKEN',
-          message: 'Token de acesso inválido ou expirado.',
-          details: errorData
-        });
-      }
-
-      if (metaResponse.status === 403) {
-        return response.status(403).json({
-          error: 'PERMISSION_DENIED',
-          message: 'Sem permissão para acessar esta conta de anúncios.',
-          details: errorData
-        });
-      }
-
-      if (metaResponse.status === 429) {
-        return response.status(429).json({
-          error: 'RATE_LIMIT',
-          message: 'Limite de requisições excedido.',
-          details: errorData
-        });
-      }
-
-      return response.status(502).json({
-        error: 'META_API_ERROR',
-        message: errorData.error?.message || 'Erro ao buscar dados da Meta API',
-        details: errorData
+    // Fetch all pages of ads
+    let allAds: any[] = [];
+    let nextUrl: string | null = url;
+    
+    while (nextUrl && allAds.length < 500) { // Safety limit of 500 ads
+      // Make request to Meta Graph API
+      const metaResponse: Response = await fetch(nextUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-    }
 
-    const data = await metaResponse.json();
+      if (!metaResponse.ok) {
+        const errorData = await metaResponse.json().catch(() => ({}));
+        
+        console.error('Meta API error:', errorData);
+
+        // Handle specific Meta API errors
+        if (metaResponse.status === 401) {
+          return response.status(401).json({
+            error: 'INVALID_TOKEN',
+            message: 'Token de acesso inválido ou expirado.',
+            details: errorData
+          });
+        }
+
+        if (metaResponse.status === 403) {
+          return response.status(403).json({
+            error: 'PERMISSION_DENIED',
+            message: 'Sem permissão para acessar esta conta de anúncios.',
+            details: errorData
+          });
+        }
+
+        if (metaResponse.status === 429) {
+          return response.status(429).json({
+            error: 'RATE_LIMIT',
+            message: 'Limite de requisições excedido.',
+            details: errorData
+          });
+        }
+
+        return response.status(502).json({
+          error: 'META_API_ERROR',
+          message: errorData.error?.message || 'Erro ao buscar dados da Meta API',
+          details: errorData
+        });
+      }
+
+      const data: any = await metaResponse.json();
+      
+      // Add ads from this page
+      allAds = allAds.concat(data.data || []);
+      
+      // Check if there's a next page
+      nextUrl = data.paging?.next || null;
+    }
     
     // Transform Meta API ads to our Ad interface
-    const transformedAds = (data.data || []).map((metaAd: any) => {
+    const transformedAds = allAds.map((metaAd: any) => {
       const creative = metaAd.creative || {};
       const insights = metaAd.insights?.data?.[0] || {};
       
@@ -192,7 +204,8 @@ export default async function handler(
     
     return response.status(200).json({
       ads: transformedAds,
-      paging: data.paging || null
+      total: transformedAds.length,
+      paging: null // All ads fetched
     });
 
   } catch (error) {
