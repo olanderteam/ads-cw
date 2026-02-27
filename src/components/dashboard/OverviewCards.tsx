@@ -1,5 +1,6 @@
 import { Users, DollarSign, MousePointerClick, TrendingUp } from "lucide-react";
 import type { Ad } from "@/data/mockAds";
+import { formatCurrency } from "@/lib/utils";
 
 interface OverviewCardsProps {
   ads: Ad[];
@@ -29,23 +30,23 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
     },
     { 
       label: "Cost per Lead", 
-      value: `${currency} ${avgCostPerLead.toFixed(2)}`, 
+      value: formatCurrency(avgCostPerLead, currency), 
       icon: DollarSign, 
-      trend: `Total spend: ${currency} ${totalSpend.toFixed(2)}`,
+      trend: `Total spend: ${formatCurrency(totalSpend, currency)}`,
       color: "text-warning"
     },
     { 
       label: "Total Clicks", 
       value: totalClicks.toLocaleString(), 
       icon: MousePointerClick, 
-      trend: `${totalImpressions.toLocaleString()} impressions`,
+      trend: `From ${ads.length} ads`,
       color: "text-primary"
     },
     { 
-      label: "Avg CTR", 
-      value: `${avgCTR.toFixed(2)}%`, 
+      label: "Total Impressions", 
+      value: totalImpressions.toLocaleString(), 
       icon: TrendingUp, 
-      trend: "Click-through rate",
+      trend: `Avg CTR: ${avgCTR.toFixed(2)}%`,
       color: "text-info"
     },
   ];

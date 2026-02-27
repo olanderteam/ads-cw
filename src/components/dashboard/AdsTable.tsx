@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Ad } from "@/data/mockAds";
+import { formatCurrency } from "@/lib/utils";
 
 interface AdsTableProps {
   ads: Ad[];
@@ -86,14 +87,14 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                   {ad.ctr !== undefined ? `${ad.ctr.toFixed(2)}%` : '-'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.spend !== undefined ? `${ad.currency || 'BRL'} ${ad.spend.toFixed(2)}` : '-'}
+                  {ad.spend !== undefined ? formatCurrency(ad.spend, ad.currency) : '-'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
                   {ad.leads !== undefined ? ad.leads.toLocaleString() : '-'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
                   {ad.costPerLead !== undefined && ad.costPerLead > 0 
-                    ? `${ad.currency || 'BRL'} ${ad.costPerLead.toFixed(2)}` 
+                    ? formatCurrency(ad.costPerLead, ad.currency) 
                     : '-'}
                 </TableCell>
                 <TableCell>

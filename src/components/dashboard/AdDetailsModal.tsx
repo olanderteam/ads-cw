@@ -3,6 +3,7 @@ import { X, ExternalLink, Image } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import type { Ad } from "@/data/mockAds";
+import { formatCurrency } from "@/lib/utils";
 
 interface AdDetailsModalProps {
   ad: Ad | null;
@@ -125,7 +126,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
                   <div>
                     <span className="text-xs text-muted-foreground">Spend</span>
                     <p className="font-medium text-foreground">
-                      {ad.currency || 'BRL'} {ad.spend.toFixed(2)}
+                      {formatCurrency(ad.spend, ad.currency)}
                     </p>
                   </div>
                 )}
@@ -139,7 +140,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
                   <div>
                     <span className="text-xs text-muted-foreground">Cost per Lead</span>
                     <p className="font-medium text-foreground">
-                      {ad.currency || 'BRL'} {ad.costPerLead.toFixed(2)}
+                      {formatCurrency(ad.costPerLead, ad.currency)}
                     </p>
                   </div>
                 )}
