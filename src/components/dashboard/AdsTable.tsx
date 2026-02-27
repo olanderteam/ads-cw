@@ -34,6 +34,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
               <TableHead className="text-xs text-right">CTR</TableHead>
               <TableHead className="text-xs text-right">Spend</TableHead>
               <TableHead className="text-xs text-right">Leads</TableHead>
+              <TableHead className="text-xs text-right">Cost/Lead</TableHead>
               <TableHead className="text-xs w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -90,6 +91,11 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                 <TableCell className="text-sm text-muted-foreground text-right">
                   {ad.leads !== undefined ? ad.leads.toLocaleString() : '-'}
                 </TableCell>
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.costPerLead !== undefined && ad.costPerLead > 0 
+                    ? `${ad.currency || 'BRL'} ${ad.costPerLead.toFixed(2)}` 
+                    : '-'}
+                </TableCell>
                 <TableCell>
                   <button
                     onClick={(e) => {
@@ -106,7 +112,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             ))}
             {ads.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-10 text-sm text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-10 text-sm text-muted-foreground">
                   No ads found matching your filters.
                 </TableCell>
               </TableRow>
