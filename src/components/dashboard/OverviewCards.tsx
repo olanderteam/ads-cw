@@ -1,4 +1,4 @@
-import { Users, DollarSign, MousePointerClick, TrendingUp } from "lucide-react";
+import { Users, DollarSign, MousePointerClick, TrendingUp, Eye } from "lucide-react";
 import type { Ad } from "@/data/mockAds";
 import { formatCurrency } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
   const totalSpend = ads.reduce((sum, ad) => sum + (ad.spend || 0), 0);
   const totalClicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
   const totalImpressions = ads.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
+  const totalReach = ads.reduce((sum, ad) => sum + (ad.reach || 0), 0);
   
   // Calculate averages
   const avgCostPerLead = totalLeads > 0 ? totalSpend / totalLeads : 0;
@@ -49,10 +50,17 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
       trend: `Avg CTR: ${avgCTR.toFixed(2)}%`,
       color: "text-info"
     },
+    { 
+      label: "Total Reach", 
+      value: totalReach.toLocaleString(), 
+      icon: Eye, 
+      trend: `From ${ads.length} ads`,
+      color: "text-purple-500"
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card) => (
         <div
           key={card.label}

@@ -97,6 +97,7 @@ export const transformMetaAdToAd = (metaAd: any): Ad => {
   // Extract metrics
   const impressions = parseInt(insights.impressions || '0');
   const clicks = parseInt(insights.clicks || '0');
+  const reach = parseInt(insights.reach || '0');
   const spend = parseFloat(insights.spend || '0');
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
@@ -133,6 +134,7 @@ export const transformMetaAdToAd = (metaAd: any): Ad => {
     // Performance metrics
     impressions,
     clicks,
+    reach,
     ctr: parseFloat(ctr.toFixed(2)),
     spend: parseFloat(spend.toFixed(2)),
     leads,

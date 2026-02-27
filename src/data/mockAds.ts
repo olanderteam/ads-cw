@@ -13,6 +13,15 @@ export interface Ad {
   pageName: string;
   tags: string[];
   notes: string;
+  // Performance metrics
+  impressions?: number;
+  clicks?: number;
+  reach?: number;
+  ctr?: number;
+  spend?: number;
+  leads?: number;
+  costPerLead?: number;
+  currency?: string;
 }
 
 export const mockAds: Ad[] = [

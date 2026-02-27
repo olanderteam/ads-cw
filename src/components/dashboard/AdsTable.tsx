@@ -31,6 +31,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
               <TableHead className="text-xs">Headline</TableHead>
               <TableHead className="text-xs">Status</TableHead>
               <TableHead className="text-xs text-right">Impressions</TableHead>
+              <TableHead className="text-xs text-right">Reach</TableHead>
               <TableHead className="text-xs text-right">Clicks</TableHead>
               <TableHead className="text-xs text-right">CTR</TableHead>
               <TableHead className="text-xs text-right">Spend</TableHead>
@@ -81,6 +82,9 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                   {ad.impressions !== undefined ? ad.impressions.toLocaleString() : '-'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.reach !== undefined ? ad.reach.toLocaleString() : '-'}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground text-right">
                   {ad.clicks !== undefined ? ad.clicks.toLocaleString() : '-'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
@@ -113,7 +117,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             ))}
             {ads.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-10 text-sm text-muted-foreground">
+                <TableCell colSpan={11} className="text-center py-10 text-sm text-muted-foreground">
                   No ads found matching your filters.
                 </TableCell>
               </TableRow>

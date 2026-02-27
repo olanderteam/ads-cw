@@ -50,7 +50,7 @@ export default async function handler(
       'created_time',
       'updated_time',
       'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type}',
-      'insights.date_preset(last_30d){impressions,clicks,spend,ctr,actions,cost_per_action_type,account_currency}'
+      'insights.date_preset(last_30d){impressions,clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}'
     ].join(',');
 
     const params = new URLSearchParams({
@@ -144,6 +144,7 @@ export default async function handler(
       // Extract metrics
       const impressions = parseInt(insights.impressions || '0');
       const clicks = parseInt(insights.clicks || '0');
+      const reach = parseInt(insights.reach || '0');
       const spend = parseFloat(insights.spend || '0');
       const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
@@ -180,6 +181,7 @@ export default async function handler(
         // Performance metrics
         impressions,
         clicks,
+        reach,
         ctr: parseFloat(ctr.toFixed(2)),
         spend: parseFloat(spend.toFixed(2)),
         leads,
