@@ -67,6 +67,8 @@ export const fetchAds = async (params: FetchAdsParams = {}): Promise<Ad[]> => {
     }
 
     const data = await response.json();
+    
+    // Data is already transformed by the backend
     return data.ads || [];
 
   } catch (error) {

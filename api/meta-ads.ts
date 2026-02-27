@@ -126,8 +126,70 @@ export default async function handler(
 
     const data = await metaResponse.json();
     
+    // Transform Meta API ads to our Ad interface
+    const transformedAds = (data.data || []).map((metaAd: any) => {
+      const creative = metaAd.creative || {};
+      const insights = metaAd.insights?.data?.[0] || {};
+      
+      // Extract thumbnail
+      let thumbnail = '';
+      if (creative.thumbnail_url) {
+        thumbnail = creative.thumbnail_url;
+      } else if (creative.image_url) {
+        thumbnail = creative.image_url;
+      } else if (creative.video_thumbnail_url) {
+        thumbnail = creative.video_thumbnail_url;
+      }
+
+      // Extract metrics
+      const impressions = parseInt(insights.impressions || '0');
+      const clicks = parseInt(insights.clicks || '0');
+      const spend = parseFloat(insights.spend || '0');
+      const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+
+      // Extract leads
+      const actions = insights.actions || [];
+      const leadAction = actions.find((a: any) => 
+        a.action_type === 'lead' || a.action_type === 'onsite_conversion.lead_grouped'
+      );
+      const leads = leadAction ? parseInt(leadAction.value) : 0;
+      const costPerLead = leads > 0 ? spend / leads : 0;
+
+      // Determine status
+      const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';
+      let status: 'active' | 'inactive' = 'inactive';
+      if (effectiveStatus === 'active') {
+        status = 'active';
+      }
+
+      return {
+        id: metaAd.id,
+        adId: `AD-${metaAd.id.slice(-6)}`,
+        headline: creative.title || creative.name || metaAd.name || 'Sem título',
+        body: creative.body || creative.message || '',
+        ctaText: creative.call_to_action_type || 'LEARN_MORE',
+        destinationUrl: creative.link_url || creative.object_url || '',
+        thumbnail,
+        status,
+        platform: 'Facebook',
+        startDate: metaAd.created_time || new Date().toISOString(),
+        lastSeen: metaAd.updated_time || new Date().toISOString(),
+        pageName: 'Meta Ads',
+        tags: [],
+        notes: '',
+        // Performance metrics
+        impressions,
+        clicks,
+        ctr: parseFloat(ctr.toFixed(2)),
+        spend: parseFloat(spend.toFixed(2)),
+        leads,
+        costPerLead: parseFloat(costPerLead.toFixed(2)),
+        currency: insights.account_currency || 'BRL'
+      };
+    });
+    
     return response.status(200).json({
-      ads: data.data || [],
+      ads: transformedAds,
       paging: data.paging || null
     });
 
