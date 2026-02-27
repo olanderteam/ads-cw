@@ -98,6 +98,55 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
             </div>
           </div>
 
+          {/* Performance Metrics */}
+          {(ad.impressions || ad.clicks || ad.spend || ad.leads) && (
+            <div className="border-t border-border pt-4">
+              <h5 className="text-sm font-semibold text-foreground mb-3">Performance Metrics</h5>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {ad.impressions !== undefined && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Impressions</span>
+                    <p className="font-medium text-foreground">{ad.impressions.toLocaleString()}</p>
+                  </div>
+                )}
+                {ad.clicks !== undefined && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Clicks</span>
+                    <p className="font-medium text-foreground">{ad.clicks.toLocaleString()}</p>
+                  </div>
+                )}
+                {ad.ctr !== undefined && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">CTR</span>
+                    <p className="font-medium text-foreground">{ad.ctr.toFixed(2)}%</p>
+                  </div>
+                )}
+                {ad.spend !== undefined && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Spend</span>
+                    <p className="font-medium text-foreground">
+                      {ad.currency || 'BRL'} {ad.spend.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+                {ad.leads !== undefined && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Leads</span>
+                    <p className="font-medium text-foreground">{ad.leads.toLocaleString()}</p>
+                  </div>
+                )}
+                {ad.costPerLead !== undefined && ad.costPerLead > 0 && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Cost per Lead</span>
+                    <p className="font-medium text-foreground">
+                      {ad.currency || 'BRL'} {ad.costPerLead.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Destination URL */}
           <div>
             <span className="text-xs text-muted-foreground">Destination URL</span>
@@ -113,20 +162,22 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
           </div>
 
           {/* Tags */}
-          <div>
-            <span className="text-xs text-muted-foreground mb-2 block">Tags</span>
-            <div className="flex flex-wrap gap-1.5">
-              {ad.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${tagColors[tag] || "bg-muted text-muted-foreground"
-                    }`}
-                >
-                  {tag}
-                </span>
-              ))}
+          {ad.tags && ad.tags.length > 0 && (
+            <div>
+              <span className="text-xs text-muted-foreground mb-2 block">Tags</span>
+              <div className="flex flex-wrap gap-1.5">
+                {ad.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${tagColors[tag] || "bg-muted text-muted-foreground"
+                      }`}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Notes */}
           <div>
