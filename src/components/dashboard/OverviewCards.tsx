@@ -1,4 +1,4 @@
-import { TrendingUp, Activity, Sparkles, RefreshCw } from "lucide-react";
+import { Users, DollarSign, MousePointerClick, TrendingUp } from "lucide-react";
 import type { Ad } from "@/data/mockAds";
 
 interface OverviewCardsProps {
@@ -6,26 +6,48 @@ interface OverviewCardsProps {
 }
 
 export function OverviewCards({ ads }: OverviewCardsProps) {
-  const total = ads.length;
-  const active = ads.filter((a) => a.status === "active").length;
-  const newLast7 = ads.filter((a) => {
-    const start = new Date(a.startDate);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return start >= weekAgo;
-  }).length;
-  const updatedRecently = ads.filter((a) => {
-    const seen = new Date(a.lastSeen);
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    return seen >= threeDaysAgo;
-  }).length;
+  // Calculate total metrics from all ads
+  const totalLeads = ads.reduce((sum, ad) => sum + (ad.leads || 0), 0);
+  const totalSpend = ads.reduce((sum, ad) => sum + (ad.spend || 0), 0);
+  const totalClicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
+  const totalImpressions = ads.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
+  
+  // Calculate averages
+  const avgCostPerLead = totalLeads > 0 ? totalSpend / totalLeads : 0;
+  const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  
+  // Get currency from first ad (assuming all ads use same currency)
+  const currency = ads[0]?.currency || 'BRL';
 
   const cards = [
-    { label: "Total Ads", value: total, icon: Activity, trend: "+2 this month" },
-    { label: "Active Ads", value: active, icon: TrendingUp, trend: `${Math.round((active / total) * 100)}% of total` },
-    { label: "New (Last 7 Days)", value: newLast7, icon: Sparkles, trend: "Recently launched" },
-    { label: "Updated Recently", value: updatedRecently, icon: RefreshCw, trend: "Last 3 days" },
+    { 
+      label: "Total Leads", 
+      value: totalLeads.toLocaleString(), 
+      icon: Users, 
+      trend: `From ${ads.length} ads`,
+      color: "text-success"
+    },
+    { 
+      label: "Cost per Lead", 
+      value: `${currency} ${avgCostPerLead.toFixed(2)}`, 
+      icon: DollarSign, 
+      trend: `Total spend: ${currency} ${totalSpend.toFixed(2)}`,
+      color: "text-warning"
+    },
+    { 
+      label: "Total Clicks", 
+      value: totalClicks.toLocaleString(), 
+      icon: MousePointerClick, 
+      trend: `${totalImpressions.toLocaleString()} impressions`,
+      color: "text-primary"
+    },
+    { 
+      label: "Avg CTR", 
+      value: `${avgCTR.toFixed(2)}%`, 
+      icon: TrendingUp, 
+      trend: "Click-through rate",
+      color: "text-info"
+    },
   ];
 
   return (
@@ -39,7 +61,7 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               {card.label}
             </span>
-            <card.icon className="h-4 w-4 text-muted-foreground" />
+            <card.icon className={`h-4 w-4 ${card.color}`} />
           </div>
           <p className="text-2xl font-semibold text-foreground">{card.value}</p>
           <p className="text-xs text-muted-foreground">{card.trend}</p>
