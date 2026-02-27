@@ -3,7 +3,6 @@ import {
   PlayCircle,
   PauseCircle,
   BarChart3,
-  Settings,
   Image,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -14,7 +13,6 @@ const navItems = [
   { title: "Anúncios Inativos", url: "/inactive", icon: PauseCircle },
   { title: "Criativos", url: "/changes", icon: Image },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -41,10 +39,6 @@ export function AppSidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <div className="px-5 py-4 border-t border-sidebar-border">
-        <p className="text-[11px] text-sidebar-foreground/50">Data source: Apify</p>
-      </div>
     </aside>
   );
 }

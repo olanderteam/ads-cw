@@ -29,9 +29,11 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
               <TableHead className="text-xs w-10">Creative</TableHead>
               <TableHead className="text-xs">Headline</TableHead>
               <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs">Start Date</TableHead>
-              <TableHead className="text-xs">Last Seen</TableHead>
-              <TableHead className="text-xs">Platform</TableHead>
+              <TableHead className="text-xs text-right">Impressions</TableHead>
+              <TableHead className="text-xs text-right">Clicks</TableHead>
+              <TableHead className="text-xs text-right">CTR</TableHead>
+              <TableHead className="text-xs text-right">Spend</TableHead>
+              <TableHead className="text-xs text-right">Leads</TableHead>
               <TableHead className="text-xs w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -73,21 +75,21 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                     {ad.status === "active" ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {new Date(ad.startDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.impressions !== undefined ? ad.impressions.toLocaleString() : '-'}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {new Date(ad.lastSeen).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.clicks !== undefined ? ad.clicks.toLocaleString() : '-'}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{ad.platform}</TableCell>
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.ctr !== undefined ? `${ad.ctr.toFixed(2)}%` : '-'}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.spend !== undefined ? `${ad.currency || 'BRL'} ${ad.spend.toFixed(2)}` : '-'}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground text-right">
+                  {ad.leads !== undefined ? ad.leads.toLocaleString() : '-'}
+                </TableCell>
                 <TableCell>
                   <button
                     onClick={(e) => {
@@ -104,7 +106,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             ))}
             {ads.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-sm text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-10 text-sm text-muted-foreground">
                   No ads found matching your filters.
                 </TableCell>
               </TableRow>

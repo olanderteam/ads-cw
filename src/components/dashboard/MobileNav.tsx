@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, LayoutDashboard, PlayCircle, PauseCircle, RefreshCw, BarChart3, Settings, Image } from "lucide-react";
+import { Menu, X, LayoutDashboard, PlayCircle, PauseCircle, RefreshCw, BarChart3, Image } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
@@ -8,7 +8,6 @@ const navItems = [
   { title: "Anúncios Inativos", url: "/inactive", icon: PauseCircle },
   { title: "Criativos", url: "/changes", icon: Image },
   { title: "Relatórios", url: "/reports", icon: BarChart3 },
-  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function MobileNav() {
