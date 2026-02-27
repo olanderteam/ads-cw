@@ -41,7 +41,7 @@ export default async function handler(
     // Build Meta Graph API URL
     const baseUrl = `https://graph.facebook.com/${apiVersion}/${adAccountId}/ads`;
     
-    // Fields to request
+    // Fields to request - use custom date range instead of date_preset
     const fields = [
       'id',
       'name',
@@ -50,7 +50,7 @@ export default async function handler(
       'created_time',
       'updated_time',
       'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type}',
-      'insights.date_preset(last_30d){impressions,clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}'
+      `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
     const params = new URLSearchParams({
@@ -160,13 +160,27 @@ export default async function handler(
       const spend = parseFloat(insights.spend || '0');
       const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
-      // Extract leads
+      // Extract leads - check multiple action types
       const actions = insights.actions || [];
       const leadAction = actions.find((a: any) => 
-        a.action_type === 'lead' || a.action_type === 'onsite_conversion.lead_grouped'
+        a.action_type === 'lead' || 
+        a.action_type === 'onsite_conversion.lead_grouped' ||
+        a.action_type === 'leadgen_grouped' ||
+        a.action_type === 'offsite_conversion.fb_pixel_lead'
       );
       const leads = leadAction ? parseInt(leadAction.value) : 0;
-      const costPerLead = leads > 0 ? spend / leads : 0;
+      
+      // Get cost per lead from Meta's calculation if available
+      const costPerActionTypes = insights.cost_per_action_type || [];
+      const costPerLeadAction = costPerActionTypes.find((a: any) => 
+        a.action_type === 'lead' || 
+        a.action_type === 'onsite_conversion.lead_grouped' ||
+        a.action_type === 'leadgen_grouped' ||
+        a.action_type === 'offsite_conversion.fb_pixel_lead'
+      );
+      const costPerLead = costPerLeadAction 
+        ? parseFloat(costPerLeadAction.value) 
+        : (leads > 0 ? spend / leads : 0);
 
       // Determine status
       const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';

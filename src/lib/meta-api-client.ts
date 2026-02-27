@@ -101,13 +101,27 @@ export const transformMetaAdToAd = (metaAd: any): Ad => {
   const spend = parseFloat(insights.spend || '0');
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
 
-  // Extract leads
+  // Extract leads - check multiple action types
   const actions = insights.actions || [];
   const leadAction = actions.find((a: any) => 
-    a.action_type === 'lead' || a.action_type === 'onsite_conversion.lead_grouped'
+    a.action_type === 'lead' || 
+    a.action_type === 'onsite_conversion.lead_grouped' ||
+    a.action_type === 'leadgen_grouped' ||
+    a.action_type === 'offsite_conversion.fb_pixel_lead'
   );
   const leads = leadAction ? parseInt(leadAction.value) : 0;
-  const costPerLead = leads > 0 ? spend / leads : 0;
+  
+  // Get cost per lead from Meta's calculation if available
+  const costPerActionTypes = insights.cost_per_action_type || [];
+  const costPerLeadAction = costPerActionTypes.find((a: any) => 
+    a.action_type === 'lead' || 
+    a.action_type === 'onsite_conversion.lead_grouped' ||
+    a.action_type === 'leadgen_grouped' ||
+    a.action_type === 'offsite_conversion.fb_pixel_lead'
+  );
+  const costPerLead = costPerLeadAction 
+    ? parseFloat(costPerLeadAction.value) 
+    : (leads > 0 ? spend / leads : 0);
 
   // Determine status
   const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';

@@ -13,9 +13,21 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
+  
+  // Default to last 30 days
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
+    const today = new Date();
+    const last30Days = new Date(today);
+    last30Days.setDate(today.getDate() - 30);
+    return { from: last30Days, to: today };
+  });
 
-  // Use global hook
-  const { data: ads = [], isLoading } = useAds();
+  // Use global hook with date range
+  const { data: ads = [], isLoading } = useAds({
+    status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
+    dateFrom: dateRange.from.toISOString().split('T')[0],
+    dateTo: dateRange.to.toISOString().split('T')[0]
+  });
 
   const filteredAds = useMemo(() => {
     return ads.filter((ad) => {
@@ -40,6 +52,8 @@ const Index = () => {
           onSearchChange={setSearch}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
+          dateRange={dateRange}
+          onDateRangeChange={(range) => range && setDateRange(range)}
         />
 
         <main className="flex-1 p-6 space-y-6">
