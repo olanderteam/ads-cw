@@ -37,7 +37,9 @@ export const useAds = (options: UseAdsOptions = {}) => {
                 throw error;
             }
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        retry: 1,
+        staleTime: 1000 * 60 * 10, // 10 minutes (increased from 5 to reduce API calls)
+        gcTime: 1000 * 60 * 15, // 15 minutes cache
+        retry: 0, // Don't retry on rate limit errors
+        refetchOnWindowFocus: false, // Don't refetch when window regains focus
     });
 };

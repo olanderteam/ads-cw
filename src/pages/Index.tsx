@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { OverviewCards } from "@/components/dashboard/OverviewCards";
@@ -22,12 +22,27 @@ const Index = () => {
     return { from: last30Days, to: today };
   });
 
-  // Use global hook with date range
-  const dateFrom = dateRange.from.toISOString().split('T')[0];
-  const dateTo = dateRange.to.toISOString().split('T')[0];
+  // Debounced date range for API calls
+  const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
+
+  // Debounce date range changes to avoid too many API calls
+  const handleDateRangeChange = useCallback((range: { from: Date; to: Date } | undefined) => {
+    if (range) {
+      setDateRange(range);
+      // Debounce the API call by 500ms
+      const timer = setTimeout(() => {
+        setDebouncedDateRange(range);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Use global hook with debounced date range
+  const dateFrom = debouncedDateRange.from.toISOString().split('T')[0];
+  const dateTo = debouncedDateRange.to.toISOString().split('T')[0];
   
   // Debug: Log date range being used
-  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange });
+  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
   
   const { data: ads = [], isLoading } = useAds({
     status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
@@ -59,7 +74,7 @@ const Index = () => {
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           dateRange={dateRange}
-          onDateRangeChange={(range) => range && setDateRange(range)}
+          onDateRangeChange={handleDateRangeChange}
         />
 
         <main className="flex-1 p-6 space-y-6">

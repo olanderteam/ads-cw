@@ -119,14 +119,24 @@ export function TopBar({
                   onSelect={(range: any) => {
                     // Allow selection even if only 'from' is selected (will use same date for 'to')
                     if (range?.from) {
+                      // Ensure dates are set to start of day in local timezone
+                      const from = new Date(range.from);
+                      from.setHours(0, 0, 0, 0);
+                      
+                      const to = range.to ? new Date(range.to) : new Date(range.from);
+                      to.setHours(23, 59, 59, 999);
+                      
+                      console.log('Calendar selection:', { from, to, range });
+                      
                       onDateRangeChange({
-                        from: range.from,
-                        to: range.to || range.from
+                        from,
+                        to
                       });
                     }
                   }}
                   numberOfMonths={2}
                   locale={ptBR}
+                  defaultMonth={new Date()}
                 />
               </div>
             </PopoverContent>
