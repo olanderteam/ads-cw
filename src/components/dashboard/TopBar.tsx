@@ -81,8 +81,10 @@ export function TopBar({
                     size="sm"
                     onClick={() => {
                       const today = new Date();
+                      today.setHours(0, 0, 0, 0);
                       const last7Days = new Date(today);
                       last7Days.setDate(today.getDate() - 7);
+                      last7Days.setHours(0, 0, 0, 0);
                       onDateRangeChange({ from: last7Days, to: today });
                     }}
                   >
@@ -93,8 +95,10 @@ export function TopBar({
                     size="sm"
                     onClick={() => {
                       const today = new Date();
+                      today.setHours(0, 0, 0, 0);
                       const last30Days = new Date(today);
                       last30Days.setDate(today.getDate() - 30);
+                      last30Days.setHours(0, 0, 0, 0);
                       onDateRangeChange({ from: last30Days, to: today });
                     }}
                   >
@@ -105,8 +109,10 @@ export function TopBar({
                     size="sm"
                     onClick={() => {
                       const today = new Date();
+                      today.setHours(0, 0, 0, 0);
                       const last90Days = new Date(today);
                       last90Days.setDate(today.getDate() - 90);
+                      last90Days.setHours(0, 0, 0, 0);
                       onDateRangeChange({ from: last90Days, to: today });
                     }}
                   >
@@ -116,27 +122,35 @@ export function TopBar({
                 <CalendarComponent
                   mode="range"
                   selected={dateRange}
+                  defaultMonth={dateRange?.from}
                   onSelect={(range: any) => {
-                    // Allow selection even if only 'from' is selected (will use same date for 'to')
+                    console.log('Calendar onSelect called:', range);
+                    
+                    // Only update if we have a valid range
                     if (range?.from) {
-                      // Ensure dates are set to start of day in local timezone
+                      // Create new Date objects to avoid mutation
                       const from = new Date(range.from);
                       from.setHours(0, 0, 0, 0);
                       
-                      const to = range.to ? new Date(range.to) : new Date(range.from);
+                      // If 'to' is not set, use 'from' as 'to' (single day selection)
+                      const to = range.to ? new Date(range.to) : new Date(from);
                       to.setHours(23, 59, 59, 999);
                       
-                      console.log('Calendar selection:', { from, to, range });
-                      
-                      onDateRangeChange({
-                        from,
-                        to
+                      console.log('Setting date range:', { 
+                        from: from.toISOString(), 
+                        to: to.toISOString(),
+                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
+                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
                       });
+                      
+                      onDateRangeChange({ from, to });
                     }
                   }}
                   numberOfMonths={2}
                   locale={ptBR}
-                  defaultMonth={new Date()}
+                  onMonthChange={(month) => {
+                    console.log('Month changed to:', month);
+                  }}
                 />
               </div>
             </PopoverContent>
