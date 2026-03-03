@@ -7,7 +7,7 @@ export interface Ad {
   destinationUrl: string;
   thumbnail: string;
   status: "active" | "inactive";
-  platform: "Facebook" | "Instagram";
+  platform: string; // Can be "Facebook", "Instagram", "Messenger", "Audience Network", or combinations like "Facebook, Instagram"
   startDate: string;
   lastSeen: string;
   pageName: string;

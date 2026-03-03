@@ -66,7 +66,9 @@ export default async function handler(
       'effective_status',
       'created_time',
       'updated_time',
-      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type}',
+      'configured_status',
+      'targeting{publisher_platforms}',
+      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec}',
       `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
@@ -155,7 +157,20 @@ export default async function handler(
       const creative = metaAd.creative || {};
       const insights = metaAd.insights?.data?.[0] || {};
       
-      // Extract thumbnail
+      // Extract headline with better fallbacks
+      const headline = creative.title 
+        || creative.object_story_spec?.link_data?.name
+        || creative.name 
+        || metaAd.name 
+        || 'Sem título';
+
+      // Extract body with better fallbacks  
+      const body = creative.body 
+        || creative.object_story_spec?.link_data?.message
+        || creative.message
+        || '';
+      
+      // Extract thumbnail with better fallbacks
       let thumbnail = '';
       if (creative.thumbnail_url) {
         thumbnail = creative.thumbnail_url;
@@ -163,7 +178,20 @@ export default async function handler(
         thumbnail = creative.image_url;
       } else if (creative.video_thumbnail_url) {
         thumbnail = creative.video_thumbnail_url;
+      } else if (creative.object_story_spec?.link_data?.picture) {
+        thumbnail = creative.object_story_spec.link_data.picture;
       }
+
+      // Extract CTA with fallback
+      const ctaText = creative.call_to_action_type 
+        || creative.object_story_spec?.link_data?.call_to_action?.type
+        || 'LEARN_MORE';
+
+      // Extract destination URL with fallback
+      const destinationUrl = creative.link_url 
+        || creative.object_url
+        || creative.object_story_spec?.link_data?.link
+        || '';
 
       // Extract metrics
       const impressions = parseInt(insights.impressions || '0');
@@ -201,16 +229,40 @@ export default async function handler(
         status = 'active';
       }
 
+      // Extract platform information
+      const targeting = metaAd.targeting || {};
+      const publisherPlatforms = targeting.publisher_platforms || [];
+
+      // Map Meta API platform values to display values
+      const platformMap: Record<string, string> = {
+        'facebook': 'Facebook',
+        'instagram': 'Instagram',
+        'messenger': 'Messenger',
+        'audience_network': 'Audience Network'
+      };
+
+      // Convert platforms array to display string
+      let platform = 'Meta Ads'; // fallback
+      if (publisherPlatforms.length > 0) {
+        const mappedPlatforms = publisherPlatforms
+          .map((p: string) => platformMap[p.toLowerCase()] || p)
+          .filter((p: string) => p);
+        
+        if (mappedPlatforms.length > 0) {
+          platform = mappedPlatforms.join(', ');
+        }
+      }
+
       return {
         id: metaAd.id,
         adId: `AD-${metaAd.id.slice(-6)}`,
-        headline: creative.title || creative.name || metaAd.name || 'Sem título',
-        body: creative.body || creative.message || '',
-        ctaText: creative.call_to_action_type || 'LEARN_MORE',
-        destinationUrl: creative.link_url || creative.object_url || '',
+        headline,
+        body,
+        ctaText,
+        destinationUrl,
         thumbnail,
         status,
-        platform: 'Facebook',
+        platform,
         startDate: metaAd.created_time || new Date().toISOString(),
         lastSeen: metaAd.updated_time || new Date().toISOString(),
         pageName: 'Meta Ads',

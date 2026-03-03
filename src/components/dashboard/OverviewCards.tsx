@@ -14,6 +14,16 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
   const totalImpressions = ads.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
   const totalReach = ads.reduce((sum, ad) => sum + (ad.reach || 0), 0);
   
+  // Debug: Log aggregated metrics
+  console.log('Aggregated Metrics:', {
+    totalLeads,
+    totalSpend,
+    totalClicks,
+    totalImpressions,
+    totalReach,
+    adsCount: ads.length
+  });
+  
   // Calculate averages
   const avgCostPerLead = totalLeads > 0 ? totalSpend / totalLeads : 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
