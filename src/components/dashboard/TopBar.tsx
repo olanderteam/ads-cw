@@ -126,17 +126,16 @@ export function TopBar({
                   onSelect={(range: any) => {
                     console.log('Calendar onSelect called:', range);
                     
-                    // Only update if we have a valid range
-                    if (range?.from) {
-                      // Create new Date objects to avoid mutation
+                    // Handle range selection
+                    if (range?.from && range?.to) {
+                      // Complete range selected (both from and to dates)
                       const from = new Date(range.from);
                       from.setHours(0, 0, 0, 0);
                       
-                      // If 'to' is not set, use 'from' as 'to' (single day selection)
-                      const to = range.to ? new Date(range.to) : new Date(from);
+                      const to = new Date(range.to);
                       to.setHours(23, 59, 59, 999);
                       
-                      console.log('Setting date range:', { 
+                      console.log('Setting complete date range:', { 
                         from: from.toISOString(), 
                         to: to.toISOString(),
                         fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
@@ -144,6 +143,26 @@ export function TopBar({
                       });
                       
                       onDateRangeChange({ from, to });
+                    } else if (range?.from && !range?.to) {
+                      // Only 'from' is set - user is starting a new range
+                      // Set both from and to to the same date for single-day selection
+                      const from = new Date(range.from);
+                      from.setHours(0, 0, 0, 0);
+                      
+                      const to = new Date(range.from);
+                      to.setHours(23, 59, 59, 999);
+                      
+                      console.log('Setting single-day range:', { 
+                        from: from.toISOString(), 
+                        to: to.toISOString(),
+                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
+                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
+                      });
+                      
+                      onDateRangeChange({ from, to });
+                    } else if (range === undefined) {
+                      // User clicked to clear the selection
+                      console.log('Calendar selection cleared');
                     }
                   }}
                   numberOfMonths={2}
