@@ -117,8 +117,12 @@ export function TopBar({
                   mode="range"
                   selected={dateRange}
                   onSelect={(range: any) => {
-                    if (range?.from && range?.to) {
-                      onDateRangeChange(range);
+                    // Allow selection even if only 'from' is selected (will use same date for 'to')
+                    if (range?.from) {
+                      onDateRangeChange({
+                        from: range.from,
+                        to: range.to || range.from
+                      });
                     }
                   }}
                   numberOfMonths={2}

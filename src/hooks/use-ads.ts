@@ -8,6 +8,9 @@ export interface UseAdsOptions {
 }
 
 export const useAds = (options: UseAdsOptions = {}) => {
+    // Debug: Log options being used
+    console.log('useAds called with options:', options);
+    
     return useQuery({
         queryKey: ["ads", options],
         queryFn: async () => {
@@ -18,6 +21,8 @@ export const useAds = (options: UseAdsOptions = {}) => {
                     dateTo: options.dateTo
                 };
 
+                console.log('Fetching ads with params:', params);
+                
                 const ads = await fetchAds(params);
                 
                 if (ads.length === 0) {
@@ -25,6 +30,7 @@ export const useAds = (options: UseAdsOptions = {}) => {
                     return [];
                 }
                 
+                console.log(`Fetched ${ads.length} ads from Meta API`);
                 return ads;
             } catch (error) {
                 console.error("Failed to fetch ads from Meta API:", error);

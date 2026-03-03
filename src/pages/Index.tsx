@@ -23,10 +23,16 @@ const Index = () => {
   });
 
   // Use global hook with date range
+  const dateFrom = dateRange.from.toISOString().split('T')[0];
+  const dateTo = dateRange.to.toISOString().split('T')[0];
+  
+  // Debug: Log date range being used
+  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange });
+  
   const { data: ads = [], isLoading } = useAds({
     status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
-    dateFrom: dateRange.from.toISOString().split('T')[0],
-    dateTo: dateRange.to.toISOString().split('T')[0]
+    dateFrom,
+    dateTo
   });
 
   const filteredAds = useMemo(() => {
