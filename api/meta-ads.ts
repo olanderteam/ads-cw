@@ -157,6 +157,18 @@ export default async function handler(
       const creative = metaAd.creative || {};
       const insights = metaAd.insights?.data?.[0] || {};
       
+      // Debug: Log insights data for first few ads
+      if (allAds.indexOf(metaAd) < 3) {
+        console.log(`Ad ${metaAd.id} insights:`, {
+          hasInsights: !!insights,
+          impressions: insights.impressions,
+          reach: insights.reach,
+          spend: insights.spend,
+          dateStart: insights.date_start,
+          dateStop: insights.date_stop
+        });
+      }
+      
       // Extract headline with better fallbacks
       const headline = creative.title 
         || creative.object_story_spec?.link_data?.name
