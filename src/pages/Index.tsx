@@ -38,8 +38,9 @@ const Index = () => {
   }, []);
 
   // Use global hook with debounced date range
-  const dateFrom = debouncedDateRange.from.toISOString().split('T')[0];
-  const dateTo = debouncedDateRange.to.toISOString().split('T')[0];
+  // Format dates to YYYY-MM-DD in local timezone to avoid timezone issues
+  const dateFrom = `${debouncedDateRange.from.getFullYear()}-${String(debouncedDateRange.from.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.from.getDate()).padStart(2, '0')}`;
+  const dateTo = `${debouncedDateRange.to.getFullYear()}-${String(debouncedDateRange.to.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.to.getDate()).padStart(2, '0')}`;
   
   // Debug: Log date range being used
   console.log('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
