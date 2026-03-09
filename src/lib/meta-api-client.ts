@@ -96,7 +96,9 @@ export const transformMetaAdToAd = (metaAd: any): Ad => {
 
   // Extract metrics
   const impressions = parseInt(insights.impressions || '0');
-  const clicks = parseInt(insights.clicks || '0');
+  const allClicks = parseInt(insights.clicks || '0');
+  const inlineLinkClicks = parseInt(insights.inline_link_clicks || '0');
+  const clicks = inlineLinkClicks > 0 ? inlineLinkClicks : allClicks;
   const reach = parseInt(insights.reach || '0');
   const spend = parseFloat(insights.spend || '0');
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;

@@ -69,7 +69,7 @@ export default async function handler(
       'configured_status',
       'targeting{publisher_platforms}',
       'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec}',
-      `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
+      `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,inline_link_clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
     const params = new URLSearchParams({
@@ -97,7 +97,7 @@ export default async function handler(
     let allAds: any[] = [];
     let nextUrl: string | null = url;
     
-    while (nextUrl && allAds.length < 500) { // Safety limit of 500 ads
+    while (nextUrl && allAds.length < 5000) { // Safety limit of 5000 ads
       // Make request to Meta Graph API
       const metaResponse: Response = await fetch(nextUrl, {
         method: 'GET',
@@ -207,7 +207,9 @@ export default async function handler(
 
       // Extract metrics
       const impressions = parseInt(insights.impressions || '0');
-      const clicks = parseInt(insights.clicks || '0');
+      const allClicks = parseInt(insights.clicks || '0');
+      const inlineLinkClicks = parseInt(insights.inline_link_clicks || '0');
+      const clicks = inlineLinkClicks > 0 ? inlineLinkClicks : allClicks;
       const reach = parseInt(insights.reach || '0');
       const spend = parseFloat(insights.spend || '0');
       const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
