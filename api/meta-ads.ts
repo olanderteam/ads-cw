@@ -78,13 +78,23 @@ export default async function handler(
       limit: '100'
     });
 
-    // Add status filter if provided
+    // Add status filter
+    // CRITICAL FIX: To avoid hitting the Ad Account's CPU Time limit (502/429),
+    // we NEVER fetch all statuses. If the user doesn't pass a specific status,
+    // we fetch only ACTIVE and PAUSED ads (ignoring DELETED/ARCHIVED entirely).
     if (status && status !== 'all') {
       const effectiveStatus = status === 'active' ? 'ACTIVE' : 'PAUSED';
       params.append('filtering', JSON.stringify([{
         field: 'effective_status',
         operator: 'IN',
         value: [effectiveStatus]
+      }]));
+    } else {
+      // Default behavior when status is 'all' or missing
+      params.append('filtering', JSON.stringify([{
+        field: 'effective_status',
+        operator: 'IN',
+        value: ['ACTIVE', 'PAUSED']
       }]));
     }
 
@@ -97,7 +107,7 @@ export default async function handler(
     let allAds: any[] = [];
     let nextUrl: string | null = url;
     
-    while (nextUrl && allAds.length < 5000) { // Safety limit of 5000 ads
+    while (nextUrl && allAds.length < 1500) { // Safety limit reduced to 1500 to save CPU Time
       // Make request to Meta Graph API
       const metaResponse: Response = await fetch(nextUrl, {
         method: 'GET',
