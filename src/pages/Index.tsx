@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { OverviewCards } from "@/components/dashboard/OverviewCards";
@@ -15,35 +15,44 @@ const Index = () => {
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
   
   // Default to last 30 days
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
+  const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>(() => {
     const today = new Date();
     const last30Days = new Date(today);
     last30Days.setDate(today.getDate() - 30);
     return { from: last30Days, to: today };
   });
 
-  // Debounced date range for API calls
-  const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
+  // Debounced params for API calls
+  const [apiDateParams, setApiDateParams] = useState({ 
+    dateFrom: dateRange?.from ? `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}` : undefined,
+    dateTo: dateRange?.to ? `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}` : undefined
+  });
 
-  // Debounce date range changes to avoid too many API calls
-  const handleDateRangeChange = useCallback((range: { from: Date; to: Date } | undefined) => {
-    if (range) {
-      setDateRange(range);
-      // Debounce the API call by 500ms
-      const timer = setTimeout(() => {
-        setDebouncedDateRange(range);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
+  // Debounce API calls correctly using useEffect
+  useEffect(() => {
+    if (!dateRange?.from) return;
+
+    // We only trigger API search when the range is complete (both from and to are set)
+    // or if only from is set, we might not want to fetch until 'to' is also selected (but we'll allow it after a delay).
+    const timer = setTimeout(() => {
+      setApiDateParams({
+        dateFrom: dateRange?.from ? `${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}` : undefined,
+        dateTo: dateRange?.to ? `${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}` : undefined
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [dateRange]);
+
+  const handleDateRangeChange = useCallback((range: { from: Date; to?: Date } | undefined) => {
+    setDateRange(range);
   }, []);
 
-  // Use global hook with debounced date range
-  // Format dates to YYYY-MM-DD in local timezone to avoid timezone issues
-  const dateFrom = `${debouncedDateRange.from.getFullYear()}-${String(debouncedDateRange.from.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.from.getDate()).padStart(2, '0')}`;
-  const dateTo = `${debouncedDateRange.to.getFullYear()}-${String(debouncedDateRange.to.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.to.getDate()).padStart(2, '0')}`;
+  // Use global hook with debounced date params
+  const { dateFrom, dateTo } = apiDateParams;
   
   // Debug: Log date range being used
-  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
+  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange });
   
   const { data: ads = [], isLoading } = useAds({
     status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',

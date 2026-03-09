@@ -18,8 +18,8 @@ interface TopBarProps {
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
-  dateRange?: { from: Date; to: Date };
-  onDateRangeChange?: (range: { from: Date; to: Date } | undefined) => void;
+  dateRange?: { from: Date; to?: Date };
+  onDateRangeChange?: (range: { from: Date; to?: Date } | undefined) => void;
 }
 
 export function TopBar({
@@ -66,7 +66,10 @@ export function TopBar({
                       {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
                     </>
                   ) : (
-                    format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                    <>
+                      {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                      Selecionar término
+                    </>
                   )
                 ) : (
                   <span>Selecionar período</span>
@@ -122,48 +125,27 @@ export function TopBar({
                 <CalendarComponent
                   mode="range"
                   selected={dateRange}
-                  defaultMonth={dateRange?.from}
                   onSelect={(range: any) => {
                     console.log('Calendar onSelect called:', range);
                     
-                    // Handle range selection
-                    if (range?.from && range?.to) {
-                      // Complete range selected (both from and to dates)
-                      const from = new Date(range.from);
-                      from.setHours(0, 0, 0, 0);
-                      
-                      const to = new Date(range.to);
-                      to.setHours(23, 59, 59, 999);
-                      
-                      console.log('Setting complete date range:', { 
-                        from: from.toISOString(), 
-                        to: to.toISOString(),
-                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
-                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
-                      });
-                      
-                      onDateRangeChange({ from, to });
-                    } else if (range?.from && !range?.to) {
-                      // Only 'from' is set - user is starting a new range
-                      // Set both from and to to the same date for single-day selection
-                      const from = new Date(range.from);
-                      from.setHours(0, 0, 0, 0);
-                      
-                      const to = new Date(range.from);
-                      to.setHours(23, 59, 59, 999);
-                      
-                      console.log('Setting single-day range:', { 
-                        from: from.toISOString(), 
-                        to: to.toISOString(),
-                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
-                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
-                      });
-                      
-                      onDateRangeChange({ from, to });
-                    } else if (range === undefined) {
-                      // User clicked to clear the selection
+                    if (!range) {
                       console.log('Calendar selection cleared');
+                      onDateRangeChange(undefined);
+                      return;
                     }
+
+                    const newRange: { from: Date; to?: Date } = { 
+                      from: new Date(range.from) 
+                    };
+                    newRange.from.setHours(0, 0, 0, 0);
+
+                    if (range.to) {
+                      const toDate = new Date(range.to);
+                      toDate.setHours(23, 59, 59, 999);
+                      newRange.to = toDate;
+                    }
+
+                    onDateRangeChange(newRange);
                   }}
                   numberOfMonths={2}
                   locale={ptBR}
