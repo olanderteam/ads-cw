@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState, useEffect } from "react";
 
 interface TopBarProps {
   search: string;
@@ -30,6 +31,16 @@ export function TopBar({
   dateRange,
   onDateRangeChange,
 }: TopBarProps) {
+  // Sync calendar's visible month with the selected 'from' date
+  const [calendarMonth, setCalendarMonth] = useState<Date | undefined>(dateRange?.from);
+
+  // Update visible month when external dateRange prop changes
+  useEffect(() => {
+    if (dateRange?.from) {
+      setCalendarMonth(dateRange.from);
+    }
+  }, [dateRange?.from]);
+
   return (
     <header className="sticky top-0 z-10 bg-card border-b border-border px-6 py-3 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 flex-1">
@@ -125,6 +136,8 @@ export function TopBar({
                 <CalendarComponent
                   mode="range"
                   selected={dateRange}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
                   onSelect={(range: any) => {
                     console.log('Calendar onSelect called:', range);
                     

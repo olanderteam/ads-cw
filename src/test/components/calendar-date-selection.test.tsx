@@ -35,10 +35,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       const user = userEvent.setup();
       
       // Track the date range changes
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(() => {
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>(() => {
           const today = new Date(2026, 2, 3); // March 3, 2026
           today.setHours(23, 59, 59, 999);
           const last30Days = new Date(2026, 1, 1); // February 1, 2026
@@ -87,10 +87,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify the captured date range has March 10th as the 'to' date (month = 2 for March)
+      // Verify the captured date range has March 10th as the 'from' date (month = 2 for March)
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.to.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.to.getDate()).toBe(10);
+      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.from.getDate()).toBe(10);
       
       // This assertion will PASS on fixed code when March 10th is correctly interpreted as March 10th
     });
@@ -98,10 +98,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
     it("should correctly interpret March 20th click as March 20th (not February 20th)", async () => {
       const user = userEvent.setup();
       
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(() => {
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>(() => {
           const today = new Date(2026, 2, 3); // March 3, 2026
           today.setHours(23, 59, 59, 999);
           const last30Days = new Date(2026, 1, 1); // February 1, 2026
@@ -148,10 +148,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify March 20th is correctly interpreted as the 'to' date
+      // Verify March 20th is correctly interpreted as the 'from' date
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.to.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.to.getDate()).toBe(20);
+      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.from.getDate()).toBe(20);
       
       // This assertion will PASS on fixed code, confirming the bug is fixed
     });
@@ -159,10 +159,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
     it("should correctly interpret March 15th click as March 15th (not February 15th)", async () => {
       const user = userEvent.setup();
       
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(() => {
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>(() => {
           const today = new Date(2026, 2, 3); // March 3, 2026
           today.setHours(23, 59, 59, 999);
           const last30Days = new Date(2026, 1, 1); // February 1, 2026
@@ -209,10 +209,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify March 15th is correctly interpreted as the 'to' date
+      // Verify March 15th is correctly interpreted as the 'from' date
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.to.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.to.getDate()).toBe(15);
+      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.from.getDate()).toBe(15);
       
       // This assertion will PASS on fixed code, confirming the bug is fixed
     });
@@ -235,10 +235,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
     it("should set correct date range for 'Últimos 7 dias' preset button", async () => {
       const user = userEvent.setup();
       
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>();
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>();
 
         return (
           <TopBar
@@ -297,10 +297,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
     it("should set correct date range for 'Últimos 30 dias' preset button", async () => {
       const user = userEvent.setup();
       
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>();
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>();
 
         return (
           <TopBar
@@ -348,10 +348,10 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
     it("should set correct date range for 'Últimos 90 dias' preset button", async () => {
       const user = userEvent.setup();
       
-      let capturedDateRange: { from: Date; to: Date } | undefined;
+      let capturedDateRange: { from: Date; to?: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>();
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>();
 
         return (
           <TopBar
@@ -400,7 +400,7 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       const user = userEvent.setup();
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(() => {
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>(() => {
           const from = new Date(2026, 1, 15); // February 15, 2026
           from.setHours(0, 0, 0, 0);
           const to = new Date(2026, 2, 20); // March 20, 2026
@@ -442,7 +442,7 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       let capturedDateRange: { from: Date; to: Date } | undefined;
       
       function TestWrapperWithCapture() {
-        const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>();
+        const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>();
 
         return (
           <TopBar
