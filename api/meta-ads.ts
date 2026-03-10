@@ -68,14 +68,14 @@ export default async function handler(
       'updated_time',
       'configured_status',
       'targeting{publisher_platforms}',
-      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec}',
+      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec}',
       `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,inline_link_clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
     const params = new URLSearchParams({
       access_token: accessToken,
       fields: fields,
-      limit: '100'
+      limit: '300' // Increased from 100 to reduce number of requests
     });
 
     // Add status filter
@@ -107,7 +107,7 @@ export default async function handler(
     let allAds: any[] = [];
     let nextUrl: string | null = url;
     
-    while (nextUrl && allAds.length < 1500) { // Safety limit reduced to 1500 to save CPU Time
+    while (nextUrl && allAds.length < 900) { // Safety limit reduced to 900 (3 pages of 300) to save CPU Time and prevent Vercel 502s
       // Make request to Meta Graph API
       const metaResponse: Response = await fetch(nextUrl, {
         method: 'GET',
@@ -180,15 +180,26 @@ export default async function handler(
       }
       
       // Extract headline with better fallbacks
-      const headline = creative.title 
+      let headline = creative.title 
         || creative.object_story_spec?.link_data?.name
+        || creative.object_story_spec?.video_data?.title
+        || creative.asset_feed_spec?.titles?.[0]?.text
+        || (creative.object_story_spec?.template_data?.name)
         || creative.name 
         || metaAd.name 
         || 'Sem título';
 
+      // If the headline is just a dynamic placeholder (e.g. {{product.name}}), try to use the ad name instead 
+      // if it provides better context, though for DPA the template might be the only title.
+      if (headline.includes('{{') && headline.includes('}}') && metaAd.name) {
+        headline = metaAd.name !== headline ? metaAd.name : headline;
+      }
+
       // Extract body with better fallbacks  
       const body = creative.body 
         || creative.object_story_spec?.link_data?.message
+        || creative.object_story_spec?.video_data?.message
+        || creative.asset_feed_spec?.bodies?.[0]?.text
         || creative.message
         || '';
       
