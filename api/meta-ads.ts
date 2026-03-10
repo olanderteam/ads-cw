@@ -1,3 +1,4 @@
+import { kv } from '@vercel/kv';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(
@@ -53,6 +54,33 @@ export default async function handler(
   }
 
   try {
+    // ---------------------------------------------------------------------------
+    // 1. CHECAR O CACHE ANTES DE CHAMAR A API DA META
+    // ---------------------------------------------------------------------------
+    // Cria uma chave única para essa requisição (Ex: ads_all_2026-03-01_2026-03-10)
+    const cacheKey = `ads_${status || 'all'}_${dateFrom || 'none'}_${dateTo || 'none'}`;
+    
+    try {
+      // Tenta buscar o dado em cache
+      const cachedData = await kv.get(cacheKey);
+      
+      if (cachedData) {
+        console.log(`[CACHE HIT] Retornando dados do Redis para a chave: ${cacheKey}`);
+        // Se encontrou no cache, retorna IMEDIATAMENTE os dados sem ir na Meta.
+        // Adicionamos um cabeçalho customizado para sinalizar no front que veio do cache
+        response.setHeader('X-Cache', 'HIT');
+        return response.status(200).json(cachedData);
+      }
+      
+      console.log(`[CACHE MISS] Dados não encontrados no Redis para a chave: ${cacheKey}. Buscando na Meta...`);
+    } catch (cacheError) {
+      console.error('Erro ao acessar o Redis Cache:', cacheError);
+      // Se der erro no cache, apenas printa o erro e segue para bater na Meta normalmente (Fallback)
+    }
+
+    // ---------------------------------------------------------------------------
+    // 2. BUSCAR NA API DA META (Se nao tiver no cache)
+    // ---------------------------------------------------------------------------
     // Build Meta Graph API URL
     const baseUrl = `https://graph.facebook.com/${apiVersion}/${adAccountId}/ads`;
     
@@ -75,7 +103,7 @@ export default async function handler(
     const params = new URLSearchParams({
       access_token: accessToken,
       fields: fields,
-      limit: '300' // Increased from 100 to reduce number of requests
+      limit: '50' // Reduced from 300 to 50 to avoid Meta API timeout and "reduce data" errors
     });
 
     // Add status filter
@@ -106,8 +134,11 @@ export default async function handler(
     // Fetch all pages of ads
     let allAds: any[] = [];
     let nextUrl: string | null = url;
+    let fetchCount = 0;
+    const MAX_FETCHES = 5; // Fetch max 5 pages (250 ads) to safely fit under Vercel's timeout
     
-    while (nextUrl && allAds.length < 900) { // Safety limit reduced to 900 (3 pages of 300) to save CPU Time and prevent Vercel 502s
+    while (nextUrl && fetchCount < MAX_FETCHES) { 
+      fetchCount++;
       // Make request to Meta Graph API
       const metaResponse: Response = await fetch(nextUrl, {
         method: 'GET',
@@ -166,18 +197,6 @@ export default async function handler(
     const transformedAds = allAds.map((metaAd: any) => {
       const creative = metaAd.creative || {};
       const insights = metaAd.insights?.data?.[0] || {};
-      
-      // Debug: Log insights data for first few ads
-      if (allAds.indexOf(metaAd) < 3) {
-        console.log(`Ad ${metaAd.id} insights:`, {
-          hasInsights: !!insights,
-          impressions: insights.impressions,
-          reach: insights.reach,
-          spend: insights.spend,
-          dateStart: insights.date_start,
-          dateStop: insights.date_stop
-        });
-      }
       
       // Extract headline with better fallbacks
       let headline = creative.title 
@@ -315,11 +334,25 @@ export default async function handler(
       };
     });
     
-    return response.status(200).json({
+    // ---------------------------------------------------------------------------
+    // 3. SALVAR RESULTADO FINAL NO CACHE (Expirando em 30 min) E RETORNAR
+    // ---------------------------------------------------------------------------
+    const finalResponseData = {
       ads: transformedAds,
       total: transformedAds.length,
       paging: null // All ads fetched
-    });
+    };
+    
+    try {
+      // Salva no Redis (ex: 1800 segundos = 30 minutos)
+      await kv.set(cacheKey, finalResponseData, { ex: 1800 });
+      console.log(`[CACHE SET] Dados salvos no Redis para a chave: ${cacheKey}`);
+    } catch (cacheError) {
+      console.error('Erro ao salvar no Redis Cache:', cacheError);
+    }
+    
+    response.setHeader('X-Cache', 'MISS');
+    return response.status(200).json(finalResponseData);
 
   } catch (error) {
     console.error('Proxy error:', error);
