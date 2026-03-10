@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(
@@ -27,6 +27,7 @@ export default async function handler(
   const accessToken = process.env.META_ACCESS_TOKEN;
   const adAccountId = process.env.META_AD_ACCOUNT_ID;
   const apiVersion = process.env.META_API_VERSION || 'v21.0';
+  const redisUrl = process.env.REDIS_URL;
 
   if (!accessToken || !adAccountId) {
     return response.status(500).json({
@@ -53,29 +54,41 @@ export default async function handler(
     });
   }
 
+  let redisClient: any = null;
+
   try {
     // ---------------------------------------------------------------------------
-    // 1. CHECAR O CACHE ANTES DE CHAMAR A API DA META
+    // 1. CHECAR O CACHE ANTES DE CHAMAR A API DA META (Redis Client)
     // ---------------------------------------------------------------------------
-    // Cria uma chave única para essa requisição (Ex: ads_all_2026-03-01_2026-03-10)
     const cacheKey = `ads_${status || 'all'}_${dateFrom || 'none'}_${dateTo || 'none'}`;
-    
-    try {
-      // Tenta buscar o dado em cache
-      const cachedData = await kv.get(cacheKey);
-      
-      if (cachedData) {
-        console.log(`[CACHE HIT] Retornando dados do Redis para a chave: ${cacheKey}`);
-        // Se encontrou no cache, retorna IMEDIATAMENTE os dados sem ir na Meta.
-        // Adicionamos um cabeçalho customizado para sinalizar no front que veio do cache
-        response.setHeader('X-Cache', 'HIT');
-        return response.status(200).json(cachedData);
+    let cachedData = null;
+
+    if (redisUrl) {
+      try {
+        redisClient = createClient({ url: redisUrl });
+        redisClient.on('error', (err: any) => console.error('Redis Client Error:', err));
+        
+        await redisClient.connect();
+        
+        // Tenta buscar o dado em cache
+        const rawCache = await redisClient.get(cacheKey);
+        
+        if (rawCache) {
+          cachedData = JSON.parse(rawCache);
+          console.log(`[CACHE HIT] Retornando dados do Redis para a chave: ${cacheKey}`);
+          
+          await redisClient.disconnect();
+          response.setHeader('X-Cache', 'HIT');
+          return response.status(200).json(cachedData);
+        }
+        
+        console.log(`[CACHE MISS] Dados não encontrados no Redis para a chave: ${cacheKey}. Buscando na Meta...`);
+      } catch (cacheError) {
+        console.error('Erro ao acessar o Redis Cache:', cacheError);
+        // Fallback natural caso haja falha temporária no banco de dados
       }
-      
-      console.log(`[CACHE MISS] Dados não encontrados no Redis para a chave: ${cacheKey}. Buscando na Meta...`);
-    } catch (cacheError) {
-      console.error('Erro ao acessar o Redis Cache:', cacheError);
-      // Se der erro no cache, apenas printa o erro e segue para bater na Meta normalmente (Fallback)
+    } else {
+      console.log('Nenhuma REDIS_URL encontrada. O Cache será ignorado.');
     }
 
     // ---------------------------------------------------------------------------
@@ -344,17 +357,35 @@ export default async function handler(
     };
     
     try {
-      // Salva no Redis (ex: 1800 segundos = 30 minutos)
-      await kv.set(cacheKey, finalResponseData, { ex: 1800 });
-      console.log(`[CACHE SET] Dados salvos no Redis para a chave: ${cacheKey}`);
+      if (redisClient) {
+        // Salva no Redis (ex: 1800 segundos = 30 minutos) e desconecta
+        await redisClient.setEx(cacheKey, 1800, JSON.stringify(finalResponseData));
+        console.log(`[CACHE SET] Dados salvos no Redis para a chave: ${cacheKey}`);
+        await redisClient.disconnect();
+      }
     } catch (cacheError) {
       console.error('Erro ao salvar no Redis Cache:', cacheError);
+      // Garante a desconexão mesmo em caso de erro ao salvar
+      if (redisClient) {
+        try {
+          await redisClient.disconnect();
+        } catch (e) {
+          console.error('Erro ao desconectar do Redis:', e);
+        }
+      }
     }
     
     response.setHeader('X-Cache', 'MISS');
     return response.status(200).json(finalResponseData);
 
   } catch (error) {
+    // Em caso de erro catastrófico, tenta fechar a conexão solta
+    if (redisClient) {
+      try {
+        await redisClient.disconnect();
+      } catch (e) {}
+    }
+    
     console.error('Proxy error:', error);
     return response.status(500).json({
       error: 'INTERNAL_ERROR',
