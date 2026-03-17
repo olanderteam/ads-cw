@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import type { Ad } from "@/data/mockAds";
 import {
   LineChart,
   Line,
@@ -9,9 +11,50 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { adActivityData, adsByStatusData } from "@/data/mockAds";
 
-export function AnalyticsSection() {
+interface AnalyticsSectionProps {
+  ads: Ad[];
+}
+
+export function AnalyticsSection({ ads }: AnalyticsSectionProps) {
+  const adsByStatusData = useMemo(() => {
+    const activeCount = ads.filter((ad) => ad.status === "active").length;
+    const inactiveCount = ads.filter((ad) => ad.status === "inactive").length;
+    
+    return [
+      { status: "Active", count: activeCount },
+      { status: "Inactive", count: inactiveCount },
+    ];
+  }, [ads]);
+
+  const adActivityData = useMemo(() => {
+    // Sort ads by start date
+    const sortedAds = [...ads]
+      .filter((a) => a.startDate)
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    
+    const countsByDate: Record<string, number> = {};
+    sortedAds.forEach((ad) => {
+      const dateObj = new Date(ad.startDate);
+      // Format as "Jan 1"
+      const dateStr = `${dateObj.toLocaleString('en-US', { month: 'short' })} ${dateObj.getDate()}`;
+      countsByDate[dateStr] = (countsByDate[dateStr] || 0) + 1;
+    });
+
+    const result = [];
+    let cumulative = 0;
+    for (const [date, count] of Object.entries(countsByDate)) {
+      cumulative += count;
+      result.push({ date, count: cumulative });
+    }
+    
+    if (result.length === 0) {
+      return [{ date: "No data", count: 0 }];
+    }
+    
+    return result;
+  }, [ads]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Line Chart */}

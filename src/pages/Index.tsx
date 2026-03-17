@@ -106,7 +106,7 @@ const Index = () => {
             <AdsTable ads={filteredAds} onViewDetails={setSelectedAd} />
           </div>
 
-          <AnalyticsSection />
+          <AnalyticsSection ads={ads} />
         </main>
       </div>
 

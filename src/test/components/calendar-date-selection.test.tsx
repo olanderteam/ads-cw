@@ -87,10 +87,11 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify the captured date range has March 10th as the 'from' date (month = 2 for March)
+      // Verify the captured date range has March 10th as the 'to' date (month = 2 for March)
+      // When clicking a date in range mode with an existing selection, it updates the 'to' date
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.from.getDate()).toBe(10);
+      expect(capturedDateRange?.to?.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.to?.getDate()).toBe(10);
       
       // This assertion will PASS on fixed code when March 10th is correctly interpreted as March 10th
     });
@@ -148,10 +149,11 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify March 20th is correctly interpreted as the 'from' date
+      // Verify March 20th is correctly interpreted as the 'to' date
+      // When clicking a date in range mode with an existing selection, it updates the 'to' date
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.from.getDate()).toBe(20);
+      expect(capturedDateRange?.to?.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.to?.getDate()).toBe(20);
       
       // This assertion will PASS on fixed code, confirming the bug is fixed
     });
@@ -209,10 +211,11 @@ describe("Calendar Date Selection - Bug Condition Exploration", () => {
       // Wait for state update
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Verify March 15th is correctly interpreted as the 'from' date
+      // Verify March 15th is correctly interpreted as the 'to' date
+      // When clicking a date in range mode with an existing selection, it updates the 'to' date
       expect(capturedDateRange).toBeDefined();
-      expect(capturedDateRange?.from.getMonth()).toBe(2); // March is month 2
-      expect(capturedDateRange?.from.getDate()).toBe(15);
+      expect(capturedDateRange?.to?.getMonth()).toBe(2); // March is month 2
+      expect(capturedDateRange?.to?.getDate()).toBe(15);
       
       // This assertion will PASS on fixed code, confirming the bug is fixed
     });
