@@ -1,0 +1,101 @@
+# Implementation Plan
+
+- [ ] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Image Quality in Inadequate Container Sizes
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate containers are too small (36x36px in table, 256px in modal)
+  - **Scoped PBT Approach**: Scope the property to concrete failing cases - render components with test data and measure actual container dimensions
+  - Test that AdsTable renders thumbnails in containers of 36x36px (h-9 w-9) - inadequate size
+  - Test that AdDetailsModal renders preview in container of 256px height (h-64) - inadequate size
+  - Verify images are rendered with object-cover in table and object-contain in modal
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves containers are too small)
+  - Document counterexamples found: "Table thumbnail container is 36x36px instead of minimum 80x80px", "Modal preview container is 256px height instead of minimum 400px"
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 2.1, 2.2, 2.3_
+
+- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Non-Image Functionality
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-image-related functionality
+  - Test fallback icon display: ads without thumbnail show Image icon with muted background
+  - Test modal opening: clicking "View" button or table row opens AdDetailsModal
+  - Test metrics display: impressions, clicks, CTR, spend, leads, cost per lead are formatted correctly
+  - Test badge interactions: status badges render with correct colors and text
+  - Test notes functionality: internal notes section in modal displays correctly
+  - Test tags display: tags render with appropriate colors
+  - Test external links: destination URL link works correctly
+  - Write property-based tests capturing observed behavior patterns from Preservation Requirements
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 3. Fix for creative image quality in table and modal
+
+  - [ ] 3.1 Increase thumbnail size in AdsTable component
+    - Open `src/components/dashboard/AdsTable.tsx`
+    - Locate the thumbnail container div (around line 48)
+    - Change className from `h-9 w-9` to `h-20 w-20` (36x36px → 80x80px)
+    - Add `loading="eager"` attribute to the img tag to ensure high-quality loading
+    - Maintain `object-cover` and `rounded-md` classes for visual consistency
+    - _Bug_Condition: isBugCondition(input) where input.component == 'AdsTable' AND input.containerSize <= 36_
+    - _Expected_Behavior: containerSize >= 80px for adequate thumbnail visibility_
+    - _Preservation: Fallback icon display, modal opening, metrics display must remain unchanged_
+    - _Requirements: 2.1, 3.1, 3.2_
+
+  - [ ] 3.2 Increase preview size in AdDetailsModal component
+    - Open `src/components/dashboard/AdDetailsModal.tsx`
+    - Locate the preview container div (around line 44)
+    - Change className from `h-64` to `h-96` or `max-h-[500px]` (256px → 384px+)
+    - Add `loading="eager"` attribute to the img tag
+    - Maintain `object-contain` class to preserve image proportions
+    - Consider increasing modal max-width from `max-w-lg` to `max-w-xl` or `max-w-2xl` for better image display
+    - _Bug_Condition: isBugCondition(input) where input.component == 'AdDetailsModal' AND input.containerSize <= 256_
+    - _Expected_Behavior: containerSize >= 400px height for adequate preview visibility_
+    - _Preservation: All modal functionality (notes, tags, links, metrics) must remain unchanged_
+    - _Requirements: 2.2, 2.3, 3.1, 3.3, 3.4, 3.5_
+
+  - [ ] 3.3 Add full-size image viewing option (Optional but recommended)
+    - In `src/components/dashboard/AdDetailsModal.tsx`
+    - Add a button/link with Maximize or ExternalLink icon from lucide-react
+    - Position in top-right corner of preview container
+    - Open `ad.thumbnail` in new tab with `target="_blank"` and `rel="noopener noreferrer"`
+    - Style consistently with existing modal buttons
+    - _Expected_Behavior: Users can view creative in full resolution for detailed analysis_
+    - _Requirements: 2.3_
+
+  - [ ] 3.4 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Image Quality in Adequate Container Sizes
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - Verify AdsTable thumbnails are now rendered in 80x80px containers
+    - Verify AdDetailsModal preview is now rendered in 384px+ height container
+    - Verify images maintain appropriate object-fit properties
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [ ] 3.5 Verify preservation tests still pass
+    - **Property 2: Preservation** - Non-Image Functionality
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - Confirm fallback icons still display correctly for ads without thumbnails
+    - Confirm modal opening functionality works as before
+    - Confirm all metrics display with correct formatting
+    - Confirm badges, notes, tags, and links all function identically
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all tests still pass after fix (no regressions)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run all tests to verify the fix is complete
+  - Verify visually that thumbnails in table are clearly visible at 80x80px
+  - Verify visually that modal preview shows images at adequate size (384px+)
+  - Verify images load with high quality (loading="eager" working)
+  - Verify all non-image functionality remains unchanged
+  - Ask the user if questions arise or if additional adjustments are needed
