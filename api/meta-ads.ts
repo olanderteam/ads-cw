@@ -109,7 +109,7 @@ export default async function handler(
       'updated_time',
       'configured_status',
       'targeting{publisher_platforms}',
-      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec}',
+      'creative{id,name,title,body,image_url,image_hash,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec}',
       `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,inline_link_clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
@@ -235,16 +235,27 @@ export default async function handler(
         || creative.message
         || '';
       
-      // Extract thumbnail with better fallbacks
+      // Extract thumbnail with better fallbacks and high quality
       let thumbnail = '';
-      if (creative.thumbnail_url) {
-        thumbnail = creative.thumbnail_url;
-      } else if (creative.image_url) {
+      
+      // Priority 1: Use image_hash to construct high-res URL
+      if (creative.image_hash) {
+        // Use Graph API to get the actual high-quality image URL
+        thumbnail = `https://graph.facebook.com/v21.0/${creative.image_hash}/picture?type=large&access_token=${accessToken}`;
+      }
+      // Priority 2: Use direct image URLs from creative
+      else if (creative.image_url) {
         thumbnail = creative.image_url;
+      } else if (creative.thumbnail_url) {
+        thumbnail = creative.thumbnail_url;
       } else if (creative.video_thumbnail_url) {
         thumbnail = creative.video_thumbnail_url;
-      } else if (creative.object_story_spec?.link_data?.picture) {
+      } 
+      // Priority 3: Extract from object_story_spec
+      else if (creative.object_story_spec?.link_data?.picture) {
         thumbnail = creative.object_story_spec.link_data.picture;
+      } else if (creative.object_story_spec?.link_data?.image_hash) {
+        thumbnail = `https://graph.facebook.com/v21.0/${creative.object_story_spec.link_data.image_hash}/picture?type=large&access_token=${accessToken}`;
       }
 
       // Extract CTA with fallback
