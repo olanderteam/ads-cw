@@ -109,7 +109,7 @@ export default async function handler(
       'updated_time',
       'configured_status',
       'targeting{publisher_platforms}',
-      'creative{id,name,title,body,image_url,image_hash,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec,effective_object_story_id}',
+      'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec}',
       `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,inline_link_clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
@@ -235,29 +235,16 @@ export default async function handler(
         || creative.message
         || '';
       
-      // Extract thumbnail with better fallbacks and high quality
+      // Extract thumbnail with better fallbacks
       let thumbnail = '';
-      
-      // Priority 1: Use image_url and modify to get high quality
-      if (creative.image_url) {
-        // Remove size parameters and add high quality params
-        thumbnail = creative.image_url.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
-      }
-      // Priority 2: Use thumbnail_url
-      else if (creative.thumbnail_url) {
-        thumbnail = creative.thumbnail_url.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
-      } 
-      // Priority 3: Video thumbnail
-      else if (creative.video_thumbnail_url) {
+      if (creative.thumbnail_url) {
+        thumbnail = creative.thumbnail_url;
+      } else if (creative.image_url) {
+        thumbnail = creative.image_url;
+      } else if (creative.video_thumbnail_url) {
         thumbnail = creative.video_thumbnail_url;
-      } 
-      // Priority 4: Extract from object_story_spec
-      else if (creative.object_story_spec?.link_data?.picture) {
-        thumbnail = creative.object_story_spec.link_data.picture.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
-      }
-      // Priority 5: Use effective_object_story_id as fallback
-      else if (creative.effective_object_story_id) {
-        thumbnail = `https://graph.facebook.com/${apiVersion}/${creative.effective_object_story_id}/picture?type=large`;
+      } else if (creative.object_story_spec?.link_data?.picture) {
+        thumbnail = creative.object_story_spec.link_data.picture;
       }
 
       // Extract CTA with fallback
