@@ -109,7 +109,7 @@ export default async function handler(
       'updated_time',
       'configured_status',
       'targeting{publisher_platforms}',
-      'creative{id,name,title,body,image_url,image_hash,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec}',
+      'creative{id,name,title,body,image_url,image_hash,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec,asset_feed_spec,effective_object_story_id}',
       `insights${dateFrom && dateTo ? `.time_range({'since':'${dateFrom}','until':'${dateTo}'})` : '.date_preset(last_30d)'}{impressions,clicks,inline_link_clicks,reach,spend,ctr,actions,cost_per_action_type,account_currency}`
     ].join(',');
 
@@ -238,24 +238,26 @@ export default async function handler(
       // Extract thumbnail with better fallbacks and high quality
       let thumbnail = '';
       
-      // Priority 1: Use image_hash to construct high-res URL
-      if (creative.image_hash) {
-        // Use Graph API to get the actual high-quality image URL
-        thumbnail = `https://graph.facebook.com/v21.0/${creative.image_hash}/picture?type=large&access_token=${accessToken}`;
+      // Priority 1: Use image_url and modify to get high quality
+      if (creative.image_url) {
+        // Remove size parameters and add high quality params
+        thumbnail = creative.image_url.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
       }
-      // Priority 2: Use direct image URLs from creative
-      else if (creative.image_url) {
-        thumbnail = creative.image_url;
-      } else if (creative.thumbnail_url) {
-        thumbnail = creative.thumbnail_url;
-      } else if (creative.video_thumbnail_url) {
+      // Priority 2: Use thumbnail_url
+      else if (creative.thumbnail_url) {
+        thumbnail = creative.thumbnail_url.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
+      } 
+      // Priority 3: Video thumbnail
+      else if (creative.video_thumbnail_url) {
         thumbnail = creative.video_thumbnail_url;
       } 
-      // Priority 3: Extract from object_story_spec
+      // Priority 4: Extract from object_story_spec
       else if (creative.object_story_spec?.link_data?.picture) {
-        thumbnail = creative.object_story_spec.link_data.picture;
-      } else if (creative.object_story_spec?.link_data?.image_hash) {
-        thumbnail = `https://graph.facebook.com/v21.0/${creative.object_story_spec.link_data.image_hash}/picture?type=large&access_token=${accessToken}`;
+        thumbnail = creative.object_story_spec.link_data.picture.replace(/(_[sn]\.jpg)/, '_o.jpg').replace(/\?.*$/, '');
+      }
+      // Priority 5: Use effective_object_story_id as fallback
+      else if (creative.effective_object_story_id) {
+        thumbnail = `https://graph.facebook.com/${apiVersion}/${creative.effective_object_story_id}/picture?type=large`;
       }
 
       // Extract CTA with fallback
