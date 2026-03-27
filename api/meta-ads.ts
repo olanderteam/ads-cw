@@ -277,7 +277,12 @@ export default async function handler(
       );
       const leads = leadAction ? parseInt(leadAction.value) : 0;
       
-      // Get cost per lead from Meta's calculation if available
+      // Calculate cost per lead
+      // IMPORTANT: Always calculate from spend/leads instead of using Meta's cost_per_action_type
+      // because Meta sometimes returns incorrect values (e.g., total spend instead of cost per lead)
+      const costPerLead = leads > 0 ? spend / leads : 0;
+
+      // Debug: Log cost per lead calculation
       const costPerActionTypes = insights.cost_per_action_type || [];
       const costPerLeadAction = costPerActionTypes.find((a: any) => 
         a.action_type === 'lead' || 
@@ -285,18 +290,13 @@ export default async function handler(
         a.action_type === 'leadgen_grouped' ||
         a.action_type === 'offsite_conversion.fb_pixel_lead'
       );
-      const costPerLead = costPerLeadAction 
-        ? parseFloat(costPerLeadAction.value) 
-        : (leads > 0 ? spend / leads : 0);
-
-      // Debug: Log cost per lead calculation
       console.log(`Ad ${metaAd.id} Cost Per Lead:`, {
         spend,
         leads,
         costPerLeadFromMeta: costPerLeadAction?.value,
-        calculatedCostPerLead: leads > 0 ? spend / leads : 0,
+        calculatedCostPerLead: costPerLead,
         finalCostPerLead: costPerLead,
-        usedMetaValue: !!costPerLeadAction
+        note: 'Using calculated value (spend/leads) instead of Meta API value due to API inconsistencies'
       });
 
       // Determine status

@@ -113,17 +113,10 @@ export const transformMetaAdToAd = (metaAd: any): Ad => {
   );
   const leads = leadAction ? parseInt(leadAction.value) : 0;
   
-  // Get cost per lead from Meta's calculation if available
-  const costPerActionTypes = insights.cost_per_action_type || [];
-  const costPerLeadAction = costPerActionTypes.find((a: any) => 
-    a.action_type === 'lead' || 
-    a.action_type === 'onsite_conversion.lead_grouped' ||
-    a.action_type === 'leadgen_grouped' ||
-    a.action_type === 'offsite_conversion.fb_pixel_lead'
-  );
-  const costPerLead = costPerLeadAction 
-    ? parseFloat(costPerLeadAction.value) 
-    : (leads > 0 ? spend / leads : 0);
+  // Calculate cost per lead
+  // IMPORTANT: Always calculate from spend/leads instead of using Meta's cost_per_action_type
+  // because Meta sometimes returns incorrect values (e.g., total spend instead of cost per lead)
+  const costPerLead = leads > 0 ? spend / leads : 0;
 
   // Determine status
   const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';
