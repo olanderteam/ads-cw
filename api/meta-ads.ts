@@ -289,6 +289,16 @@ export default async function handler(
         ? parseFloat(costPerLeadAction.value) 
         : (leads > 0 ? spend / leads : 0);
 
+      // Debug: Log cost per lead calculation
+      console.log(`Ad ${metaAd.id} Cost Per Lead:`, {
+        spend,
+        leads,
+        costPerLeadFromMeta: costPerLeadAction?.value,
+        calculatedCostPerLead: leads > 0 ? spend / leads : 0,
+        finalCostPerLead: costPerLead,
+        usedMetaValue: !!costPerLeadAction
+      });
+
       // Determine status
       const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';
       let status: 'active' | 'inactive' = 'inactive';

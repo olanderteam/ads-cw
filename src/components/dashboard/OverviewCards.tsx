@@ -24,8 +24,24 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
     adsCount: ads.length
   });
   
+  // Debug: Log individual ad cost per lead values
+  console.log('Individual Ad Cost Per Lead:', ads.map(ad => ({
+    adId: ad.adId,
+    leads: ad.leads,
+    spend: ad.spend,
+    costPerLead: ad.costPerLead,
+    calculatedCPL: ad.leads > 0 ? ad.spend / ad.leads : 0
+  })));
+  
   // Calculate averages
   const avgCostPerLead = totalLeads > 0 ? totalSpend / totalLeads : 0;
+  
+  console.log('Cost Per Lead Calculation:', {
+    totalSpend,
+    totalLeads,
+    avgCostPerLead,
+    formula: `${totalSpend} / ${totalLeads} = ${avgCostPerLead}`
+  });
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   
   // Get currency from first ad (assuming all ads use same currency)
