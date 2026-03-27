@@ -37,7 +37,7 @@ export default async function handler(
   }
 
   // Extract query parameters
-  const { status, dateFrom, dateTo } = request.query;
+  const { status, dateFrom, dateTo, forceRefresh } = request.query;
 
   // Validate date format (YYYY-MM-DD) if provided
   const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -63,7 +63,8 @@ export default async function handler(
     const cacheKey = `ads_${status || 'all'}_${dateFrom || 'none'}_${dateTo || 'none'}`;
     let cachedData = null;
 
-    if (redisUrl) {
+    // Skip cache if forceRefresh is true
+    if (redisUrl && !forceRefresh) {
       try {
         redisClient = createClient({ url: redisUrl });
         redisClient.on('error', (err: any) => console.error('Redis Client Error:', err));
