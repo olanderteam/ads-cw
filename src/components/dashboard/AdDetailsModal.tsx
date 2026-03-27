@@ -38,13 +38,26 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
 
         <div className="p-5 space-y-5">
           {/* Creative Preview */}
-          <div className="h-64 rounded-lg bg-muted flex items-center justify-center overflow-hidden relative group">
+          <div className="max-h-[500px] rounded-lg bg-muted flex items-center justify-center overflow-hidden relative group">
             {ad.thumbnail ? (
-              <img
-                src={ad.thumbnail}
-                alt={ad.headline}
-                className="h-full w-full object-contain"
-              />
+              <>
+                <img
+                  src={ad.thumbnail}
+                  alt={ad.headline}
+                  loading="eager"
+                  className="h-full w-full object-contain"
+                />
+                <a
+                  href={ad.thumbnail}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-2 right-2 p-2 bg-background/80 hover:bg-background rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="View full size"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-4 w-4 text-foreground" />
+                </a>
+              </>
             ) : (
               <Image className="h-8 w-8 text-muted-foreground" />
             )}

@@ -44,11 +44,12 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             {ads.map((ad) => (
               <TableRow key={ad.id} className="cursor-pointer" onClick={() => onViewDetails(ad)}>
                 <TableCell>
-                  <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                  <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                     {ad.thumbnail ? (
                       <img
                         src={ad.thumbnail}
                         alt="Ad Creative"
+                        loading="eager"
                         className="h-full w-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -60,6 +61,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                     )}
                   </div>
                 </TableCell>
+
                 <TableCell>
                   <p className="text-sm font-medium text-foreground truncate max-w-xs">
                     {ad.headline}
