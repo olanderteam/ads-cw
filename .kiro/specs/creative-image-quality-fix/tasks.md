@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Fault Condition** - Image Quality in Inadequate Container Sizes
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -34,9 +34,9 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 3. Fix for creative image quality in table and modal
+- [x] 3. Fix for creative image quality in table and modal
 
-  - [ ] 3.1 Increase thumbnail size in AdsTable component
+  - [x] 3.1 Increase thumbnail size in AdsTable component
     - Open `src/components/dashboard/AdsTable.tsx`
     - Locate the thumbnail container div (around line 48)
     - Change className from `h-9 w-9` to `h-20 w-20` (36x36px → 80x80px)
@@ -47,7 +47,7 @@
     - _Preservation: Fallback icon display, modal opening, metrics display must remain unchanged_
     - _Requirements: 2.1, 3.1, 3.2_
 
-  - [ ] 3.2 Increase preview size in AdDetailsModal component
+  - [x] 3.2 Increase preview size in AdDetailsModal component
     - Open `src/components/dashboard/AdDetailsModal.tsx`
     - Locate the preview container div (around line 44)
     - Change className from `h-64` to `h-96` or `max-h-[500px]` (256px → 384px+)
@@ -59,7 +59,7 @@
     - _Preservation: All modal functionality (notes, tags, links, metrics) must remain unchanged_
     - _Requirements: 2.2, 2.3, 3.1, 3.3, 3.4, 3.5_
 
-  - [ ] 3.3 Add full-size image viewing option (Optional but recommended)
+  - [x] 3.3 Add full-size image viewing option (Optional but recommended)
     - In `src/components/dashboard/AdDetailsModal.tsx`
     - Add a button/link with Maximize or ExternalLink icon from lucide-react
     - Position in top-right corner of preview container
@@ -68,7 +68,7 @@
     - _Expected_Behavior: Users can view creative in full resolution for detailed analysis_
     - _Requirements: 2.3_
 
-  - [ ] 3.4 Verify bug condition exploration test now passes
+  - [x] 3.4 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Image Quality in Adequate Container Sizes
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -80,7 +80,7 @@
     - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
     - _Requirements: 2.1, 2.2, 2.3_
 
-  - [ ] 3.5 Verify preservation tests still pass
+  - [x] 3.5 Verify preservation tests still pass
     - **Property 2: Preservation** - Non-Image Functionality
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2
@@ -92,7 +92,7 @@
     - Confirm all tests still pass after fix (no regressions)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run all tests to verify the fix is complete
   - Verify visually that thumbnails in table are clearly visible at 80x80px
   - Verify visually that modal preview shows images at adequate size (384px+)
