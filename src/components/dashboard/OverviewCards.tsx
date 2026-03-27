@@ -43,7 +43,7 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
       label: "Cost per Lead", 
       value: formatCurrency(avgCostPerLead, currency), 
       icon: DollarSign, 
-      trend: `Total spend: ${formatCurrency(totalSpend, currency)}`,
+      trend: `From ${totalLeads.toLocaleString()} leads`,
       color: "text-warning"
     },
     { 
