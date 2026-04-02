@@ -164,15 +164,19 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
           {/* Destination URL */}
           <div>
             <span className="text-xs text-muted-foreground">Destination URL</span>
-            <a
-              href={ad.destinationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-primary hover:underline mt-0.5"
-            >
-              {ad.destinationUrl}
-              <ExternalLink className="h-3 w-3" />
-            </a>
+            {ad.destinationUrl ? (
+              <a
+                href={ad.destinationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-primary hover:underline mt-0.5"
+              >
+                {ad.destinationUrl}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <p className="text-sm text-foreground mt-0.5">Sem URL de destino</p>
+            )}
           </div>
 
           {/* Tags */}

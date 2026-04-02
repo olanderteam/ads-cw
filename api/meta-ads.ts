@@ -254,10 +254,16 @@ export default async function handler(
         || 'LEARN_MORE';
 
       // Extract destination URL with fallback
-      const destinationUrl = creative.link_url 
+      let destinationUrl = creative.link_url 
         || creative.object_url
         || creative.object_story_spec?.link_data?.link
+        || creative.object_story_spec?.video_data?.call_to_action?.value?.link
+        || creative.asset_feed_spec?.link_urls?.[0]?.website_url
         || '';
+        
+      if (destinationUrl && !destinationUrl.startsWith('http')) {
+        destinationUrl = `https://${destinationUrl}`;
+      }
 
       // Extract metrics
       const impressions = parseInt(insights.impressions || '0');
