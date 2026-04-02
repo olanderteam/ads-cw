@@ -95,7 +95,7 @@ const Index = () => {
             </p>
           </div>
 
-          <OverviewCards ads={ads} />
+          <OverviewCards ads={filteredAds} />
 
           <div className="relative">
             {isLoading && (
@@ -106,7 +106,7 @@ const Index = () => {
             <AdsTable ads={filteredAds} onViewDetails={setSelectedAd} />
           </div>
 
-          <AnalyticsSection ads={ads} />
+          <AnalyticsSection ads={filteredAds} />
         </main>
       </div>
 

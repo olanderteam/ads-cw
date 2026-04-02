@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAds, transformMetaAdToAd, type FetchAdsParams } from "@/lib/meta-api-client";
+import { fetchAds, type FetchAdsParams } from "@/lib/meta-api-client";
 
 export interface UseAdsOptions {
     status?: 'all' | 'active' | 'inactive';

@@ -1,4 +1,5 @@
-import { Eye, Image } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Eye, Image, ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -16,7 +17,55 @@ interface AdsTableProps {
   onViewDetails: (ad: Ad) => void;
 }
 
+type SortColumn = "headline" | "status" | "impressions" | "reach" | "clicks" | "ctr" | "spend" | "leads" | "costPerLead" | null;
+type SortDirection = "asc" | "desc";
+
 export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("desc"); // Default to desc for a new column (highest metrics first)
+    }
+  };
+
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) return <ArrowUpDown className="ml-1 h-3 w-3 inline-block opacity-50" />;
+    return sortDirection === "asc" ? (
+      <ArrowUp className="ml-1 h-3 w-3 inline-block" />
+    ) : (
+      <ArrowDown className="ml-1 h-3 w-3 inline-block" />
+    );
+  };
+
+  const sortedAds = useMemo(() => {
+    if (!sortColumn) return ads;
+
+    return [...ads].sort((a, b) => {
+      let valueA: any = a[sortColumn];
+      let valueB: any = b[sortColumn];
+
+      // Handle null/undefined values
+      if (valueA === undefined || valueA === null) valueA = typeof valueB === 'number' ? 0 : '';
+      if (valueB === undefined || valueB === null) valueB = typeof valueA === 'number' ? 0 : '';
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return sortDirection === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      }
+
+      // Numeric comparison
+      if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [ads, sortColumn, sortDirection]);
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       <div className="px-5 py-4 border-b border-border">
@@ -28,20 +77,65 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-xs w-10">Creative</TableHead>
-              <TableHead className="text-xs">Headline</TableHead>
-              <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs text-right">Impressions</TableHead>
-              <TableHead className="text-xs text-right">Reach</TableHead>
-              <TableHead className="text-xs text-right">Clicks</TableHead>
-              <TableHead className="text-xs text-right">CTR</TableHead>
-              <TableHead className="text-xs text-right">Spend</TableHead>
-              <TableHead className="text-xs text-right">Leads</TableHead>
-              <TableHead className="text-xs text-right">Cost/Lead</TableHead>
+              <TableHead 
+                className="text-xs cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("headline")}
+              >
+                Headline {getSortIcon("headline")}
+              </TableHead>
+              <TableHead 
+                className="text-xs cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("status")}
+              >
+                Status {getSortIcon("status")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("impressions")}
+              >
+                Impressions {getSortIcon("impressions")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("reach")}
+              >
+                Reach {getSortIcon("reach")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("clicks")}
+              >
+                Clicks {getSortIcon("clicks")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("ctr")}
+              >
+                CTR {getSortIcon("ctr")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("spend")}
+              >
+                Spend {getSortIcon("spend")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("leads")}
+              >
+                Leads {getSortIcon("leads")}
+              </TableHead>
+              <TableHead 
+                className="text-xs text-right cursor-pointer hover:text-foreground select-none"
+                onClick={() => handleSort("costPerLead")}
+              >
+                Cost/Lead {getSortIcon("costPerLead")}
+              </TableHead>
               <TableHead className="text-xs w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {ads.map((ad) => (
+            {sortedAds.map((ad) => (
               <TableRow key={ad.id} className="cursor-pointer" onClick={() => onViewDetails(ad)}>
                 <TableCell>
                   <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center overflow-hidden">
@@ -117,7 +211,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                 </TableCell>
               </TableRow>
             ))}
-            {ads.length === 0 && (
+            {sortedAds.length === 0 && (
               <TableRow>
                 <TableCell colSpan={11} className="text-center py-10 text-sm text-muted-foreground">
                   No ads found matching your filters.
