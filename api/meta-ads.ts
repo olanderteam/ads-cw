@@ -96,20 +96,39 @@ export default async function handler(
     // Fetch all pages of ads
     let allAds: any[] = [];
     let nextUrl: string | null = url;
+    let fetchCount = 0;
+    const MAX_FETCHES = 5; // Safety limit of 500 ads
+    const startTime = Date.now();
+    const MAX_EXECUTION_TIME = 8500; // 8.5 seconds limit
     
-    while (nextUrl && allAds.length < 500) { // Safety limit of 500 ads
-      // Make request to Meta Graph API
-      const metaResponse: Response = await fetch(nextUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+    while (nextUrl && fetchCount < MAX_FETCHES) { 
+      const elapsed = Date.now() - startTime;
+      const timeRemaining = MAX_EXECUTION_TIME - elapsed;
+      
+      if (timeRemaining <= 0) {
+        console.warn(`[TIMEOUT] Fetched ${allAds.length} ads. Stopping to prevent 504.`);
+        break;
+      }
 
-      if (!metaResponse.ok) {
-        const errorData = await metaResponse.json().catch(() => ({}));
-        
-        console.error('Meta API error:', errorData);
+      fetchCount++;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeRemaining);
+
+      try {
+        // Make request to Meta Graph API
+        const metaResponse: Response = await fetch(nextUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!metaResponse.ok) {
+          const errorData = await metaResponse.json().catch(() => ({}));
+          console.error('Meta API error:', errorData);
 
         // Handle specific Meta API errors
         if (metaResponse.status === 401) {
@@ -150,6 +169,14 @@ export default async function handler(
       
       // Check if there's a next page
       nextUrl = data.paging?.next || null;
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.warn(`[TIMEOUT] Meta API fetch aborted to prevent 504. Returning ${allAds.length} fetched ads.`);
+          break; // Stop fetching, but proceed to return the ads we have
+        } else {
+          throw err; // Re-throw other unexpected errors
+        }
+      }
     }
     
     // Transform Meta API ads to our Ad interface
@@ -158,11 +185,18 @@ export default async function handler(
       const insights = metaAd.insights?.data?.[0] || {};
       
       // Extract headline with better fallbacks
-      const headline = creative.title 
+      let headline = creative.title 
         || creative.object_story_spec?.link_data?.name
+        || creative.object_story_spec?.video_data?.title
+        || creative.asset_feed_spec?.titles?.[0]?.text
         || creative.name 
         || metaAd.name 
         || 'Sem título';
+
+      // Corrigir macros do Meta Ads (ex: {{product.name}})
+      if (headline.includes('{{') && headline.includes('}}') && metaAd.name) {
+        headline = metaAd.name; // Usa o nome do anúncio se o título for apenas uma macro de template
+      }
 
       // Extract body with better fallbacks  
       const body = creative.body 
