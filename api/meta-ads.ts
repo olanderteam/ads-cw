@@ -204,18 +204,33 @@ export default async function handler(
         || creative.message
         || '';
       
+      // Helper function to extract high-res payload from external wrapped URLs
+      const extractHighResUrl = (url: string) => {
+        if (!url) return '';
+        try {
+          const urlObj = new URL(url);
+          const innerUrl = urlObj.searchParams.get('url');
+          if (innerUrl) {
+            return decodeURIComponent(innerUrl);
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+        return url;
+      };
+
       // Extract thumbnail with better fallbacks to prioritize high-resolution images
       let thumbnail = '';
       if (creative.image_url) {
-        thumbnail = creative.image_url;
+        thumbnail = extractHighResUrl(creative.image_url);
       } else if (creative.object_story_spec?.link_data?.picture) {
-        thumbnail = creative.object_story_spec.link_data.picture;
+        thumbnail = extractHighResUrl(creative.object_story_spec.link_data.picture);
       } else if (creative.object_story_spec?.video_data?.image_url) {
-        thumbnail = creative.object_story_spec.video_data.image_url;
+        thumbnail = extractHighResUrl(creative.object_story_spec.video_data.image_url);
       } else if (creative.thumbnail_url) {
-        thumbnail = creative.thumbnail_url;
+        thumbnail = extractHighResUrl(creative.thumbnail_url);
       } else if (creative.video_thumbnail_url) {
-        thumbnail = creative.video_thumbnail_url;
+        thumbnail = extractHighResUrl(creative.video_thumbnail_url);
       }
 
       // Extract CTA with fallback
