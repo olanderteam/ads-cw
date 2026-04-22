@@ -204,16 +204,18 @@ export default async function handler(
         || creative.message
         || '';
       
-      // Extract thumbnail with better fallbacks
+      // Extract thumbnail with better fallbacks to prioritize high-resolution images
       let thumbnail = '';
-      if (creative.thumbnail_url) {
-        thumbnail = creative.thumbnail_url;
-      } else if (creative.image_url) {
+      if (creative.image_url) {
         thumbnail = creative.image_url;
-      } else if (creative.video_thumbnail_url) {
-        thumbnail = creative.video_thumbnail_url;
       } else if (creative.object_story_spec?.link_data?.picture) {
         thumbnail = creative.object_story_spec.link_data.picture;
+      } else if (creative.object_story_spec?.video_data?.image_url) {
+        thumbnail = creative.object_story_spec.video_data.image_url;
+      } else if (creative.thumbnail_url) {
+        thumbnail = creative.thumbnail_url;
+      } else if (creative.video_thumbnail_url) {
+        thumbnail = creative.video_thumbnail_url;
       }
 
       // Extract CTA with fallback
