@@ -19,6 +19,17 @@ export function applyCors(request: VercelRequest, response: VercelResponse): boo
     return true;
   }
 
+  // Extract the host from the request to allow same-domain requests
+  const requestHost = request.headers['host'] as string | undefined;
+  if (requestHost && origin.includes(requestHost)) {
+    // Allow requests from the same domain (e.g., Vercel deployment)
+    response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Vary', 'Origin');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return true;
+  }
+
   // If no allowed origins are configured, reject all cross-origin requests
   if (allowedOrigins.length === 0) {
     response.status(403).json({
