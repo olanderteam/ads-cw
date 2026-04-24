@@ -21,138 +21,45 @@ export interface MetaApiError {
 }
 
 /**
- * Fetch ads from Meta Marketing API via proxy endpoint
+ * Fetch ads from Meta Marketing API via proxy endpoint.
+ * Transformation is handled server-side by api/_transform.ts.
  */
 export const fetchAds = async (params: FetchAdsParams = {}): Promise<Ad[]> => {
-  try {
-    const queryParams = new URLSearchParams();
-    
-    if (params.status && params.status !== 'all') {
-      queryParams.append('status', params.status);
-    }
-    
-    if (params.dateFrom) {
-      queryParams.append('dateFrom', params.dateFrom);
-    }
-    
-    if (params.dateTo) {
-      queryParams.append('dateTo', params.dateTo);
-    }
+  const queryParams = new URLSearchParams();
 
-    const url = `/api/meta-ads${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      if (response.status === 401) {
-        throw new Error('Token de acesso inválido ou expirado. Por favor, configure um novo token.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Sem permissão para acessar esta conta de anúncios. Verifique as permissões do token.');
-      }
-      
-      if (response.status === 429) {
-        throw new Error('Limite de requisições excedido. Por favor, tente novamente mais tarde.');
-      }
-
-      throw new Error(errorData.message || `Erro ao buscar anúncios: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    // Data is already transformed by the backend
-    return data.ads || [];
-
-  } catch (error) {
-    console.error('Meta API client error:', error);
-    throw error;
+  if (params.status && params.status !== 'all') {
+    queryParams.append('status', params.status);
   }
-};
-
-/**
- * Transform Meta API ad response to our Ad interface
- */
-export const transformMetaAdToAd = (metaAd: any): Ad => {
-  const creative = metaAd.creative || {};
-  const insights = metaAd.insights?.data?.[0] || {};
-  
-  // Extract thumbnail
-  let thumbnail = '';
-  if (creative.thumbnail_url) {
-    thumbnail = creative.thumbnail_url;
-  } else if (creative.image_url) {
-    thumbnail = creative.image_url;
-  } else if (creative.video_thumbnail_url) {
-    thumbnail = creative.video_thumbnail_url;
+  if (params.dateFrom) {
+    queryParams.append('dateFrom', params.dateFrom);
+  }
+  if (params.dateTo) {
+    queryParams.append('dateTo', params.dateTo);
   }
 
-  // Extract metrics
-  const impressions = parseInt(insights.impressions || '0');
-  const clicks = parseInt(insights.clicks || '0');
-  const reach = parseInt(insights.reach || '0');
-  const spend = parseFloat(insights.spend || '0');
-  const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+  const url = `/api/meta-ads${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
-  // Extract leads - check multiple action types
-  const actions = insights.actions || [];
-  const leadAction = actions.find((a: any) => 
-    a.action_type === 'lead' || 
-    a.action_type === 'onsite_conversion.lead_grouped' ||
-    a.action_type === 'leadgen_grouped' ||
-    a.action_type === 'offsite_conversion.fb_pixel_lead'
-  );
-  const leads = leadAction ? parseInt(leadAction.value) : 0;
-  
-  // Get cost per lead from Meta's calculation if available
-  const costPerActionTypes = insights.cost_per_action_type || [];
-  const costPerLeadAction = costPerActionTypes.find((a: any) => 
-    a.action_type === 'lead' || 
-    a.action_type === 'onsite_conversion.lead_grouped' ||
-    a.action_type === 'leadgen_grouped' ||
-    a.action_type === 'offsite_conversion.fb_pixel_lead'
-  );
-  const costPerLead = costPerLeadAction 
-    ? parseFloat(costPerLeadAction.value) 
-    : (leads > 0 ? spend / leads : 0);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
 
-  // Determine status
-  const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';
-  let status: 'active' | 'inactive' = 'inactive';
-  if (effectiveStatus === 'active') {
-    status = 'active';
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      throw new Error('Token de acesso inválido ou expirado. Por favor, configure um novo token.');
+    }
+    if (response.status === 403) {
+      throw new Error('Sem permissão para acessar esta conta de anúncios. Verifique as permissões do token.');
+    }
+    if (response.status === 429) {
+      throw new Error('Limite de requisições excedido. Por favor, tente novamente mais tarde.');
+    }
+
+    throw new Error(errorData.message || `Erro ao buscar anúncios: ${response.statusText}`);
   }
 
-  return {
-    id: metaAd.id,
-    adId: `AD-${metaAd.id.slice(-6)}`,
-    headline: creative.title || creative.name || 'Sem título',
-    body: creative.body || creative.message || '',
-    ctaText: creative.call_to_action_type || 'LEARN_MORE',
-    destinationUrl: creative.link_url || creative.object_url || '',
-    thumbnail,
-    status,
-    platform: 'Facebook',
-    startDate: metaAd.created_time || new Date().toISOString(),
-    lastSeen: metaAd.updated_time || new Date().toISOString(),
-    pageName: metaAd.account_name || 'Meta Ads',
-    tags: [],
-    notes: '',
-    // Performance metrics
-    impressions,
-    clicks,
-    reach,
-    ctr: parseFloat(ctr.toFixed(2)),
-    spend: parseFloat(spend.toFixed(2)),
-    leads,
-    costPerLead: parseFloat(costPerLead.toFixed(2)),
-    currency: insights.account_currency || 'BRL'
-  };
+  const data = await response.json();
+  return data.ads || [];
 };

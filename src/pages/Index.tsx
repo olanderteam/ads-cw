@@ -8,6 +8,7 @@ import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import type { Ad } from "@/data/mockAds";
 import { useAds } from "@/hooks/use-ads";
+import { logger } from "@/lib/logger";
 
 const Index = () => {
   const [search, setSearch] = useState("");
@@ -41,15 +42,16 @@ const Index = () => {
   // Format dates to YYYY-MM-DD in local timezone to avoid timezone issues
   const dateFrom = `${debouncedDateRange.from.getFullYear()}-${String(debouncedDateRange.from.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.from.getDate()).padStart(2, '0')}`;
   const dateTo = `${debouncedDateRange.to.getFullYear()}-${String(debouncedDateRange.to.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.to.getDate()).padStart(2, '0')}`;
+
+  logger.debug('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
   
-  // Debug: Log date range being used
-  console.log('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
-  
-  const { data: ads = [], isLoading } = useAds({
+  const { data: ads = [], isLoading, dataUpdatedAt } = useAds({
     status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
     dateFrom,
     dateTo
   });
+
+  const lastSyncedAt = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
 
   const filteredAds = useMemo(() => {
     return ads.filter((ad) => {
@@ -76,6 +78,7 @@ const Index = () => {
           onStatusFilterChange={setStatusFilter}
           dateRange={dateRange}
           onDateRangeChange={handleDateRangeChange}
+          lastSyncedAt={lastSyncedAt}
         />
 
         <main className="flex-1 p-6 space-y-6">
@@ -97,7 +100,7 @@ const Index = () => {
             <AdsTable ads={filteredAds} onViewDetails={setSelectedAd} />
           </div>
 
-          <AnalyticsSection />
+          <AnalyticsSection ads={ads} />
         </main>
       </div>
 

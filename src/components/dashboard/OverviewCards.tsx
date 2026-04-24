@@ -13,59 +13,49 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
   const totalClicks = ads.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
   const totalImpressions = ads.reduce((sum, ad) => sum + (ad.impressions || 0), 0);
   const totalReach = ads.reduce((sum, ad) => sum + (ad.reach || 0), 0);
-  
-  // Debug: Log aggregated metrics
-  console.log('Aggregated Metrics:', {
-    totalLeads,
-    totalSpend,
-    totalClicks,
-    totalImpressions,
-    totalReach,
-    adsCount: ads.length
-  });
-  
+
   // Calculate averages
   const avgCostPerLead = totalLeads > 0 ? totalSpend / totalLeads : 0;
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-  
+
   // Get currency from first ad (assuming all ads use same currency)
   const currency = ads[0]?.currency || 'BRL';
 
   const cards = [
-    { 
-      label: "Total Leads", 
-      value: totalLeads.toLocaleString(), 
-      icon: Users, 
+    {
+      label: "Total Leads",
+      value: totalLeads.toLocaleString(),
+      icon: Users,
       trend: `From ${ads.length} ads`,
-      color: "text-success"
+      color: "text-success",
     },
-    { 
-      label: "Cost per Lead", 
-      value: formatCurrency(avgCostPerLead, currency), 
-      icon: DollarSign, 
+    {
+      label: "Cost per Lead",
+      value: formatCurrency(avgCostPerLead, currency),
+      icon: DollarSign,
       trend: `Total spend: ${formatCurrency(totalSpend, currency)}`,
-      color: "text-warning"
+      color: "text-warning",
     },
-    { 
-      label: "Total Clicks", 
-      value: totalClicks.toLocaleString(), 
-      icon: MousePointerClick, 
+    {
+      label: "Total Clicks",
+      value: totalClicks.toLocaleString(),
+      icon: MousePointerClick,
       trend: `From ${ads.length} ads`,
-      color: "text-primary"
+      color: "text-primary",
     },
-    { 
-      label: "Total Impressions", 
-      value: totalImpressions.toLocaleString(), 
-      icon: TrendingUp, 
+    {
+      label: "Total Impressions",
+      value: totalImpressions.toLocaleString(),
+      icon: TrendingUp,
       trend: `Avg CTR: ${avgCTR.toFixed(2)}%`,
-      color: "text-info"
+      color: "text-info",
     },
-    { 
-      label: "Total Reach", 
-      value: totalReach.toLocaleString(), 
-      icon: Eye, 
+    {
+      label: "Total Reach",
+      value: totalReach.toLocaleString(),
+      icon: Eye,
       trend: `From ${ads.length} ads`,
-      color: "text-purple-500"
+      color: "text-purple-500",
     },
   ];
 

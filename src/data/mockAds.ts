@@ -7,21 +7,21 @@ export interface Ad {
   destinationUrl: string;
   thumbnail: string;
   status: "active" | "inactive";
-  platform: string; // Can be "Facebook", "Instagram", "Messenger", "Audience Network", or combinations like "Facebook, Instagram"
+  platform: string; // e.g. "Facebook", "Instagram", "Facebook, Instagram"
   startDate: string;
   lastSeen: string;
   pageName: string;
   tags: string[];
   notes: string;
-  // Performance metrics
-  impressions?: number;
-  clicks?: number;
-  reach?: number;
-  ctr?: number;
-  spend?: number;
-  leads?: number;
-  costPerLead?: number;
-  currency?: string;
+  // Performance metrics — always present (default 0 / 'BRL')
+  impressions: number;
+  clicks: number;
+  reach: number;
+  ctr: number;
+  spend: number;
+  leads: number;
+  costPerLead: number;
+  currency: string;
 }
 
 export const mockAds: Ad[] = [
@@ -40,6 +40,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Always-on", "Aquisição"],
     notes: "",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "2",
@@ -56,6 +64,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Promo"],
     notes: "Nova versão do criativo lançada em Jan/25",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "3",
@@ -72,6 +88,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional"],
     notes: "",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "4",
@@ -88,6 +112,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Promo", "Sazonal"],
     notes: "Campanha encerrada",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "5",
@@ -104,6 +136,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Always-on"],
     notes: "",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "6",
@@ -120,6 +160,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional"],
     notes: "Pausado para reformulação do criativo",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "7",
@@ -136,6 +184,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Lançamento"],
     notes: "Feature launch campaign",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
   {
     id: "8",
@@ -152,6 +208,14 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional", "Social Proof"],
     notes: "",
+    impressions: 0,
+    clicks: 0,
+    reach: 0,
+    ctr: 0,
+    spend: 0,
+    leads: 0,
+    costPerLead: 0,
+    currency: "BRL",
   },
 ];
 

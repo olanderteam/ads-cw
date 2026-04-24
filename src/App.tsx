@@ -1,8 +1,9 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { toast } from "sonner";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import ActiveAds from "./pages/ActiveAds";
@@ -11,7 +12,19 @@ import Reports from "./pages/Reports";
 import Changes from "./pages/Changes";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Erro ao carregar dados');
+    },
+  }),
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

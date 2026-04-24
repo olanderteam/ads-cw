@@ -1,4 +1,5 @@
 import { Search, RefreshCw, User, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -12,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { logger } from "@/lib/logger";
 
 interface TopBarProps {
   search: string;
@@ -20,6 +22,7 @@ interface TopBarProps {
   onStatusFilterChange: (value: string) => void;
   dateRange?: { from: Date; to: Date };
   onDateRangeChange?: (range: { from: Date; to: Date } | undefined) => void;
+  lastSyncedAt?: Date | null;
 }
 
 export function TopBar({
@@ -29,7 +32,28 @@ export function TopBar({
   onStatusFilterChange,
   dateRange,
   onDateRangeChange,
+  lastSyncedAt,
 }: TopBarProps) {
+  const [relativeTime, setRelativeTime] = useState('');
+
+  useEffect(() => {
+    const update = () => {
+      if (!lastSyncedAt) {
+        setRelativeTime('Nunca sincronizado');
+        return;
+      }
+      const diffMs = Date.now() - lastSyncedAt.getTime();
+      const diffMin = Math.floor(diffMs / 60_000);
+      if (diffMin < 1) {
+        setRelativeTime('Sincronizado agora');
+      } else {
+        setRelativeTime(`Sincronizado há ${diffMin} min`);
+      }
+    };
+    update();
+    const interval = setInterval(update, 60_000);
+    return () => clearInterval(interval);
+  }, [lastSyncedAt]);
   return (
     <header className="sticky top-0 z-10 bg-card border-b border-border px-6 py-3 flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 flex-1">
@@ -124,52 +148,23 @@ export function TopBar({
                   selected={dateRange}
                   defaultMonth={dateRange?.from}
                   onSelect={(range: any) => {
-                    console.log('Calendar onSelect called:', range);
-                    
                     // Handle range selection
                     if (range?.from && range?.to) {
-                      // Complete range selected (both from and to dates)
                       const from = new Date(range.from);
                       from.setHours(0, 0, 0, 0);
-                      
                       const to = new Date(range.to);
                       to.setHours(23, 59, 59, 999);
-                      
-                      console.log('Setting complete date range:', { 
-                        from: from.toISOString(), 
-                        to: to.toISOString(),
-                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
-                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
-                      });
-                      
                       onDateRangeChange({ from, to });
                     } else if (range?.from && !range?.to) {
-                      // Only 'from' is set - user is starting a new range
-                      // Set both from and to to the same date for single-day selection
                       const from = new Date(range.from);
                       from.setHours(0, 0, 0, 0);
-                      
                       const to = new Date(range.from);
                       to.setHours(23, 59, 59, 999);
-                      
-                      console.log('Setting single-day range:', { 
-                        from: from.toISOString(), 
-                        to: to.toISOString(),
-                        fromFormatted: format(from, "dd/MM/yyyy", { locale: ptBR }),
-                        toFormatted: format(to, "dd/MM/yyyy", { locale: ptBR })
-                      });
-                      
                       onDateRangeChange({ from, to });
-                    } else if (range === undefined) {
-                      // User clicked to clear the selection
-                      console.log('Calendar selection cleared');
                     }
                   }}
                   numberOfMonths={2}
                   locale={ptBR}
-                  onMonthChange={(month) => {
-                    console.log('Month changed to:', month);
-                  }}
                 />
               </div>
             </PopoverContent>
@@ -180,7 +175,7 @@ export function TopBar({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <RefreshCw className="h-3 w-3" />
-          <span>Synced 5 min ago</span>
+          <span>{relativeTime || 'Nunca sincronizado'}</span>
         </div>
 
         <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">

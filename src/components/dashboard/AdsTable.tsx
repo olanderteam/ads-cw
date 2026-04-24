@@ -1,4 +1,5 @@
 import { Eye, Image } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -11,12 +12,26 @@ import {
 import type { Ad } from "@/data/mockAds";
 import { formatCurrency } from "@/lib/utils";
 
+const PAGE_SIZE = 50;
+
 interface AdsTableProps {
   ads: Ad[];
   onViewDetails: (ad: Ad) => void;
 }
 
 export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
+  const [page, setPage] = useState(1);
+
+  // Reset to page 1 whenever the ads list changes (filter applied)
+  useEffect(() => {
+    setPage(1);
+  }, [ads]);
+
+  const totalPages = Math.max(1, Math.ceil(ads.length / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
+  const pageAds = ads.slice(start, start + PAGE_SIZE);
+  const end = Math.min(start + PAGE_SIZE, ads.length);
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       <div className="px-5 py-4 border-b border-border">
@@ -41,7 +56,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {ads.map((ad) => (
+            {pageAds.map((ad) => (
               <TableRow key={ad.id} className="cursor-pointer" onClick={() => onViewDetails(ad)}>
                 <TableCell>
                   <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center overflow-hidden">
@@ -79,27 +94,25 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.impressions !== undefined ? ad.impressions.toLocaleString() : '-'}
+                  {ad.impressions.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.reach !== undefined ? ad.reach.toLocaleString() : '-'}
+                  {ad.reach.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.clicks !== undefined ? ad.clicks.toLocaleString() : '-'}
+                  {ad.clicks.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.ctr !== undefined ? `${ad.ctr.toFixed(2)}%` : '-'}
+                  {ad.ctr.toFixed(2)}%
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.spend !== undefined ? formatCurrency(ad.spend, ad.currency) : '-'}
+                  {formatCurrency(ad.spend, ad.currency)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.leads !== undefined ? ad.leads.toLocaleString() : '-'}
+                  {ad.leads.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
-                  {ad.costPerLead !== undefined && ad.costPerLead > 0 
-                    ? formatCurrency(ad.costPerLead, ad.currency) 
-                    : '-'}
+                  {ad.costPerLead > 0 ? formatCurrency(ad.costPerLead, ad.currency) : '-'}
                 </TableCell>
                 <TableCell>
                   <button
@@ -125,6 +138,34 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination controls */}
+      {ads.length > 0 && (
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
+            Exibindo {ads.length === 0 ? 0 : start + 1}–{end} de {ads.length} anúncios
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="text-xs px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-xs text-muted-foreground">
+              Página {page} de {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="text-xs px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Próximo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

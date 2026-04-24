@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchAds, transformMetaAdToAd, type FetchAdsParams } from "@/lib/meta-api-client";
+import { fetchAds, type FetchAdsParams } from "@/lib/meta-api-client";
+import { logger } from "@/lib/logger";
 
 export interface UseAdsOptions {
     status?: 'all' | 'active' | 'inactive';
@@ -8,9 +9,8 @@ export interface UseAdsOptions {
 }
 
 export const useAds = (options: UseAdsOptions = {}) => {
-    // Debug: Log options being used
-    console.log('useAds called with options:', options);
-    
+    logger.debug('useAds called with options:', options);
+
     return useQuery({
         queryKey: ["ads", options],
         queryFn: async () => {
@@ -21,25 +21,24 @@ export const useAds = (options: UseAdsOptions = {}) => {
                     dateTo: options.dateTo
                 };
 
-                console.log('Fetching ads with params:', params);
-                
+                logger.debug('Fetching ads with params:', params);
+
                 const ads = await fetchAds(params);
-                
+
                 if (ads.length === 0) {
-                    console.log("No ads returned from Meta API");
+                    logger.debug("No ads returned from Meta API");
                     return [];
                 }
-                
-                console.log(`Fetched ${ads.length} ads from Meta API`);
+
+                logger.debug(`Fetched ${ads.length} ads from Meta API`);
                 return ads;
             } catch (error) {
-                console.error("Failed to fetch ads from Meta API:", error);
+                logger.error("Failed to fetch ads from Meta API:", error);
                 throw error;
             }
         },
-        staleTime: 1000 * 60 * 10, // 10 minutes (increased from 5 to reduce API calls)
-        gcTime: 1000 * 60 * 15, // 15 minutes cache
-        retry: 0, // Don't retry on rate limit errors
-        refetchOnWindowFocus: false, // Don't refetch when window regains focus
+        staleTime: 1000 * 60 * 10, // 10 minutes
+        gcTime: 1000 * 60 * 15,    // 15 minutes cache
+        // retry and refetchOnWindowFocus are configured globally in QueryClient (App.tsx)
     });
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ExternalLink, Image } from "lucide-react";
+import { X, ExternalLink, Image, StickyNote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import type { Ad } from "@/data/mockAds";
@@ -20,18 +20,39 @@ const tagColors: Record<string, string> = {
   "Social Proof": "bg-muted text-muted-foreground",
 };
 
+const NOTES_KEY = (adId: string) => `ad_notes_${adId}`;
+
 export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
-  const [notes, setNotes] = useState(ad?.notes || "");
+  const [notes, setNotes] = useState<string>(() => {
+    if (!ad) return '';
+    return localStorage.getItem(NOTES_KEY(ad.id)) ?? ad.notes ?? '';
+  });
 
   if (!ad) return null;
 
+  const hasNotes = notes.trim().length > 0;
+
+  const handleClose = () => {
+    if (notes.trim()) {
+      localStorage.setItem(NOTES_KEY(ad.id), notes);
+    } else {
+      localStorage.removeItem(NOTES_KEY(ad.id));
+    }
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-foreground/20" onClick={onClose} />
+      <div className="absolute inset-0 bg-foreground/20" onClick={handleClose} />
       <div className="relative bg-card rounded-xl border border-border shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground">Ad Details</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">Ad Details</h3>
+            {hasNotes && (
+              <StickyNote className="h-3.5 w-3.5 text-warning" title="Has saved notes" />
+            )}
+          </div>
+          <button onClick={handleClose} className="text-muted-foreground hover:text-foreground transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -100,53 +121,41 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
           </div>
 
           {/* Performance Metrics */}
-          {(ad.impressions || ad.clicks || ad.spend || ad.leads) && (
-            <div className="border-t border-border pt-4">
-              <h5 className="text-sm font-semibold text-foreground mb-3">Performance Metrics</h5>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {ad.impressions !== undefined && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">Impressions</span>
-                    <p className="font-medium text-foreground">{ad.impressions.toLocaleString()}</p>
-                  </div>
-                )}
-                {ad.clicks !== undefined && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">Clicks</span>
-                    <p className="font-medium text-foreground">{ad.clicks.toLocaleString()}</p>
-                  </div>
-                )}
-                {ad.ctr !== undefined && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">CTR</span>
-                    <p className="font-medium text-foreground">{ad.ctr.toFixed(2)}%</p>
-                  </div>
-                )}
-                {ad.spend !== undefined && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">Spend</span>
-                    <p className="font-medium text-foreground">
-                      {formatCurrency(ad.spend, ad.currency)}
-                    </p>
-                  </div>
-                )}
-                {ad.leads !== undefined && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">Leads</span>
-                    <p className="font-medium text-foreground">{ad.leads.toLocaleString()}</p>
-                  </div>
-                )}
-                {ad.costPerLead !== undefined && ad.costPerLead > 0 && (
-                  <div>
-                    <span className="text-xs text-muted-foreground">Cost per Lead</span>
-                    <p className="font-medium text-foreground">
-                      {formatCurrency(ad.costPerLead, ad.currency)}
-                    </p>
-                  </div>
-                )}
+          <div className="border-t border-border pt-4">
+            <h5 className="text-sm font-semibold text-foreground mb-3">Performance Metrics</h5>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-xs text-muted-foreground">Impressions</span>
+                <p className="font-medium text-foreground">{ad.impressions.toLocaleString()}</p>
               </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Clicks</span>
+                <p className="font-medium text-foreground">{ad.clicks.toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">CTR</span>
+                <p className="font-medium text-foreground">{ad.ctr.toFixed(2)}%</p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Spend</span>
+                <p className="font-medium text-foreground">
+                  {formatCurrency(ad.spend, ad.currency)}
+                </p>
+              </div>
+              <div>
+                <span className="text-xs text-muted-foreground">Leads</span>
+                <p className="font-medium text-foreground">{ad.leads.toLocaleString()}</p>
+              </div>
+              {ad.costPerLead > 0 && (
+                <div>
+                  <span className="text-xs text-muted-foreground">Cost per Lead</span>
+                  <p className="font-medium text-foreground">
+                    {formatCurrency(ad.costPerLead, ad.currency)}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Destination URL */}
           <div>
@@ -170,8 +179,9 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
                 {ad.tags.map((tag) => (
                   <span
                     key={tag}
-                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${tagColors[tag] || "bg-muted text-muted-foreground"
-                      }`}
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                      tagColors[tag] || "bg-muted text-muted-foreground"
+                    }`}
                   >
                     {tag}
                   </span>
@@ -180,7 +190,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
             </div>
           )}
 
-          {/* Notes */}
+          {/* Notes — persisted to localStorage on close */}
           <div>
             <span className="text-xs text-muted-foreground mb-2 block">Internal Notes</span>
             <Textarea
@@ -189,6 +199,11 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
               placeholder="Add internal notes about this ad…"
               className="text-sm min-h-[80px] resize-none"
             />
+            {hasNotes && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Notes are saved automatically when you close this modal.
+              </p>
+            )}
           </div>
         </div>
       </div>
