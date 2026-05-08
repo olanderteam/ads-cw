@@ -40,8 +40,9 @@ export const useAds = (options: UseAdsOptions = {}) => {
 
             return result;
         },
-        staleTime: 1000 * 60 * 10, // 10 minutes
-        gcTime: 1000 * 60 * 15,    // 15 minutes cache
+        staleTime: 1000 * 60 * 15,    // 15 minutes
+        gcTime: 1000 * 60 * 20,      // 20 minutes cache
+        refetchInterval: 1000 * 60 * 15, // auto-sync every 15 minutes
     });
 
     return {
