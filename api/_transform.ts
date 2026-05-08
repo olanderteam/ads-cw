@@ -62,13 +62,24 @@ function extractHighResUrl(url: string): string {
 }
 
 /**
- * Returns the first matching action value from an actions array.
- * Checks action types in priority order to avoid array-order mismatches.
+ * Returns the first action value > 0 from an actions array.
+ * Skips types that exist but have value 0, so we don't miss the real lead source.
  */
 function getActionValue(actions: any[], types: string[]): number {
   for (const type of types) {
     const act = actions.find((a: any) => a.action_type === type);
-    if (act && act.value) return parseInt(act.value, 10);
+    if (act && parseInt(act.value, 10) > 0) return parseInt(act.value, 10);
+  }
+  return 0;
+}
+
+/**
+ * Like getActionValue but returns a float — used for cost_per_action_type.
+ */
+function getActionFloat(actions: any[], types: string[]): number {
+  for (const type of types) {
+    const act = actions.find((a: any) => a.action_type === type);
+    if (act && parseFloat(act.value) > 0) return parseFloat(act.value);
   }
   return 0;
 }
@@ -146,7 +157,10 @@ export function transformMetaAdToAd(metaAd: any): Ad {
 
   const actions = insights.actions || [];
   const leads = getActionValue(actions, LEAD_ACTION_TYPES);
-  const costPerLead = leads > 0 ? spend / leads : 0;
+
+  // Use Meta's own cost_per_action_type instead of calculating manually (matches Ads Manager)
+  const costPerActionType = insights.cost_per_action_type || [];
+  const costPerLead = getActionFloat(costPerActionType, LEAD_ACTION_TYPES) || (leads > 0 ? spend / leads : 0);
 
   // --- Status ---
   const effectiveStatus = metaAd.effective_status?.toLowerCase() || 'unknown';
