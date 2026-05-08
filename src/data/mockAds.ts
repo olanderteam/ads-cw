@@ -1,28 +1,4 @@
-export interface Ad {
-  id: string;
-  adId: string;
-  headline: string;
-  body: string;
-  ctaText: string;
-  destinationUrl: string;
-  thumbnail: string;
-  status: "active" | "inactive";
-  platform: string; // e.g. "Facebook", "Instagram", "Facebook, Instagram"
-  startDate: string;
-  lastSeen: string;
-  pageName: string;
-  tags: string[];
-  notes: string;
-  // Performance metrics — always present (default 0 / 'BRL')
-  impressions: number;
-  clicks: number;
-  reach: number;
-  ctr: number;
-  spend: number;
-  leads: number;
-  costPerLead: number;
-  currency: string;
-}
+export type { Ad } from "@/types/ad";
 
 export const mockAds: Ad[] = [
   {
@@ -40,6 +16,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Always-on", "Aquisição"],
     notes: "",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -64,6 +45,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Promo"],
     notes: "Nova versão do criativo lançada em Jan/25",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -88,6 +74,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional"],
     notes: "",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -112,6 +103,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Promo", "Sazonal"],
     notes: "Campanha encerrada",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -136,6 +132,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Always-on"],
     notes: "",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -160,6 +161,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional"],
     notes: "Pausado para reformulação do criativo",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -184,6 +190,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Lançamento"],
     notes: "Feature launch campaign",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -208,6 +219,11 @@ export const mockAds: Ad[] = [
     pageName: "Cardápio Web",
     tags: ["Institucional", "Social Proof"],
     notes: "",
+    campaignId: "",
+    campaignName: "",
+    campaignObjective: "",
+    adsetId: "",
+    adsetName: "",
     impressions: 0,
     clicks: 0,
     reach: 0,
@@ -219,18 +235,3 @@ export const mockAds: Ad[] = [
   },
 ];
 
-export const adActivityData = [
-  { date: "Jan 1", count: 3 },
-  { date: "Jan 8", count: 4 },
-  { date: "Jan 15", count: 4 },
-  { date: "Jan 22", count: 5 },
-  { date: "Jan 29", count: 5 },
-  { date: "Feb 5", count: 6 },
-  { date: "Feb 12", count: 6 },
-  { date: "Feb 16", count: 6 },
-];
-
-export const adsByStatusData = [
-  { status: "Active", count: 6 },
-  { status: "Inactive", count: 2 },
-];

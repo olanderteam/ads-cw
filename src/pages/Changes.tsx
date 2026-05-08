@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import { TopBar } from "@/components/dashboard/TopBar";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Image as ImageIcon, ExternalLink } from "lucide-react";
 import { useAds } from "@/hooks/use-ads";
+import { formatDateParam } from "@/lib/utils";
 import type { Ad } from "@/data/mockAds";
 
 const Changes = () => {
@@ -15,7 +16,32 @@ const Changes = () => {
     const [statusFilter, setStatusFilter] = useState("all");
     const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
 
-    const { data: ads = [], isLoading } = useAds();
+    const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() => {
+        const today = new Date();
+        const last30Days = new Date(today);
+        last30Days.setDate(today.getDate() - 30);
+        return { from: last30Days, to: today };
+    });
+
+    const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
+
+    const handleDateRangeChange = useCallback((range: { from: Date; to: Date } | undefined) => {
+        if (range) setDateRange(range);
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedDateRange(dateRange), 500);
+        return () => clearTimeout(timer);
+    }, [dateRange]);
+
+    const dateFrom = formatDateParam(debouncedDateRange.from);
+    const dateTo = formatDateParam(debouncedDateRange.to);
+
+    const { data: ads = [], isLoading } = useAds({
+        status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
+        dateFrom,
+        dateTo,
+    });
 
     const filteredAds = ads.filter((ad) => {
         const matchesSearch =
@@ -38,19 +64,26 @@ const Changes = () => {
                     onSearchChange={setSearch}
                     statusFilter={statusFilter}
                     onStatusFilterChange={setStatusFilter}
+                    dateRange={dateRange}
+                    onDateRangeChange={handleDateRangeChange}
                 />
 
                 <main className="flex-1 p-6 space-y-6">
                     <div>
-                        <h1 className="text-lg font-semibold text-foreground">Creatives Library</h1>
+                        <h1 className="text-lg font-semibold text-foreground">Biblioteca de Criativos</h1>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                            Visual gallery of all tracked ad creatives
+                            Galeria visual de todos os criativos rastreados
                         </p>
                     </div>
 
                     {isLoading ? (
                         <div className="flex items-center justify-center min-h-[200px]">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : filteredAds.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-muted-foreground">
+                            <ImageIcon className="h-10 w-10 opacity-20" />
+                            <p className="text-sm">Nenhum criativo encontrado para o período selecionado.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -77,7 +110,7 @@ const Changes = () => {
                                         </AspectRatio>
                                         <div className="absolute top-2 right-2">
                                             <Badge variant={ad.status === 'active' ? 'default' : 'secondary'} className="shadow-sm">
-                                                {ad.status}
+                                                {ad.status === 'active' ? 'Ativo' : 'Inativo'}
                                             </Badge>
                                         </div>
                                     </div>
@@ -97,15 +130,17 @@ const Changes = () => {
                                                 {ad.platform}
                                             </span>
                                             <div className="flex gap-2">
-                                                <a
-                                                    href={ad.destinationUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-primary hover:text-primary/80"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                </a>
+                                                {ad.destinationUrl && (
+                                                    <a
+                                                        href={ad.destinationUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary hover:text-primary/80"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, ExternalLink, Image, StickyNote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,10 +23,12 @@ const tagColors: Record<string, string> = {
 const NOTES_KEY = (adId: string) => `ad_notes_${adId}`;
 
 export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
-  const [notes, setNotes] = useState<string>(() => {
-    if (!ad) return '';
-    return localStorage.getItem(NOTES_KEY(ad.id)) ?? ad.notes ?? '';
-  });
+  const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (!ad) return;
+    setNotes(localStorage.getItem(NOTES_KEY(ad.id)) ?? ad.notes ?? '');
+  }, [ad?.id]);
 
   if (!ad) return null;
 
@@ -47,7 +49,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
       <div className="relative bg-card rounded-xl border border-border shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-foreground">Ad Details</h3>
+            <h3 className="text-sm font-semibold text-foreground">Detalhes do Anúncio</h3>
             {hasNotes && (
               <StickyNote className="h-3.5 w-3.5 text-warning" title="Has saved notes" />
             )}
@@ -80,7 +82,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
           {/* Meta Info */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span className="text-xs text-muted-foreground">CTA</span>
+              <span className="text-xs text-muted-foreground">Chamada p/ ação</span>
               <p className="font-medium text-foreground">{ad.ctaText}</p>
             </div>
             <div>
@@ -99,37 +101,49 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
               </p>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Ad ID</span>
+              <span className="text-xs text-muted-foreground">ID do Anúncio</span>
               <p className="font-medium text-foreground text-xs">{ad.adId}</p>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Platform</span>
+              <span className="text-xs text-muted-foreground">Plataforma</span>
               <p className="font-medium text-foreground">{ad.platform}</p>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Start Date</span>
+              <span className="text-xs text-muted-foreground">Data de Início</span>
               <p className="font-medium text-foreground">
                 {new Date(ad.startDate).toLocaleDateString()}
               </p>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground">Last Seen</span>
+              <span className="text-xs text-muted-foreground">Última Atualização</span>
               <p className="font-medium text-foreground">
                 {new Date(ad.lastSeen).toLocaleDateString()}
               </p>
             </div>
+            {ad.campaignName && (
+              <div className="col-span-2">
+                <span className="text-xs text-muted-foreground">Campanha</span>
+                <p className="font-medium text-foreground text-xs truncate">{ad.campaignName}</p>
+              </div>
+            )}
+            {ad.adsetName && (
+              <div className="col-span-2">
+                <span className="text-xs text-muted-foreground">Conjunto de Anúncios</span>
+                <p className="font-medium text-foreground text-xs truncate">{ad.adsetName}</p>
+              </div>
+            )}
           </div>
 
           {/* Performance Metrics */}
           <div className="border-t border-border pt-4">
-            <h5 className="text-sm font-semibold text-foreground mb-3">Performance Metrics</h5>
+            <h5 className="text-sm font-semibold text-foreground mb-3">Métricas de Performance</h5>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-xs text-muted-foreground">Impressions</span>
+                <span className="text-xs text-muted-foreground">Impressões</span>
                 <p className="font-medium text-foreground">{ad.impressions.toLocaleString()}</p>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground">Clicks</span>
+                <span className="text-xs text-muted-foreground">Cliques</span>
                 <p className="font-medium text-foreground">{ad.clicks.toLocaleString()}</p>
               </div>
               <div>
@@ -137,7 +151,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
                 <p className="font-medium text-foreground">{ad.ctr.toFixed(2)}%</p>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground">Spend</span>
+                <span className="text-xs text-muted-foreground">Gasto</span>
                 <p className="font-medium text-foreground">
                   {formatCurrency(ad.spend, ad.currency)}
                 </p>
@@ -148,7 +162,7 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
               </div>
               {ad.costPerLead > 0 && (
                 <div>
-                  <span className="text-xs text-muted-foreground">Cost per Lead</span>
+                  <span className="text-xs text-muted-foreground">Custo por Lead</span>
                   <p className="font-medium text-foreground">
                     {formatCurrency(ad.costPerLead, ad.currency)}
                   </p>
@@ -158,18 +172,20 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
           </div>
 
           {/* Destination URL */}
-          <div>
-            <span className="text-xs text-muted-foreground">Destination URL</span>
-            <a
-              href={ad.destinationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-primary hover:underline mt-0.5"
-            >
-              {ad.destinationUrl}
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
+          {ad.destinationUrl && (
+            <div>
+              <span className="text-xs text-muted-foreground">URL de Destino</span>
+              <a
+                href={ad.destinationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-primary hover:underline mt-0.5"
+              >
+                {ad.destinationUrl}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
 
           {/* Tags */}
           {ad.tags && ad.tags.length > 0 && (
@@ -192,16 +208,16 @@ export function AdDetailsModal({ ad, onClose }: AdDetailsModalProps) {
 
           {/* Notes — persisted to localStorage on close */}
           <div>
-            <span className="text-xs text-muted-foreground mb-2 block">Internal Notes</span>
+            <span className="text-xs text-muted-foreground mb-2 block">Notas Internas</span>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add internal notes about this ad…"
+              placeholder="Adicione notas internas sobre este anúncio…"
               className="text-sm min-h-[80px] resize-none"
             />
             {hasNotes && (
               <p className="text-xs text-muted-foreground mt-1">
-                Notes are saved automatically when you close this modal.
+                Notas salvas automaticamente ao fechar.
               </p>
             )}
           </div>

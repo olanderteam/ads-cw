@@ -11,6 +11,9 @@ interface RateLimitResult {
   retryAfter: number;
 }
 
+// LIMITAÇÃO CONHECIDA: store em memória não é compartilhado entre instâncias Vercel.
+// Cada instância tem seu próprio Map — rate limit pode ser bypassado via múltiplas instâncias.
+// Para produção com volume alto: substituir por Upstash Redis (https://upstash.com).
 const store = new Map<string, RateLimitEntry>();
 
 const WINDOW_MS = 60_000; // 60 seconds

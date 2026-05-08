@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { OverviewCards } from "@/components/dashboard/OverviewCards";
@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/dashboard/MobileNav";
 import type { Ad } from "@/data/mockAds";
 import { useAds } from "@/hooks/use-ads";
 import { logger } from "@/lib/logger";
+import { formatDateParam } from "@/lib/utils";
 
 const Index = () => {
   const [search, setSearch] = useState("");
@@ -23,29 +24,23 @@ const Index = () => {
     return { from: last30Days, to: today };
   });
 
-  // Debounced date range for API calls
   const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
 
-  // Debounce date range changes to avoid too many API calls
   const handleDateRangeChange = useCallback((range: { from: Date; to: Date } | undefined) => {
-    if (range) {
-      setDateRange(range);
-      // Debounce the API call by 500ms
-      const timer = setTimeout(() => {
-        setDebouncedDateRange(range);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
+    if (range) setDateRange(range);
   }, []);
 
-  // Use global hook with debounced date range
-  // Format dates to YYYY-MM-DD in local timezone to avoid timezone issues
-  const dateFrom = `${debouncedDateRange.from.getFullYear()}-${String(debouncedDateRange.from.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.from.getDate()).padStart(2, '0')}`;
-  const dateTo = `${debouncedDateRange.to.getFullYear()}-${String(debouncedDateRange.to.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.to.getDate()).padStart(2, '0')}`;
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedDateRange(dateRange), 500);
+    return () => clearTimeout(timer);
+  }, [dateRange]);
+
+  const dateFrom = formatDateParam(debouncedDateRange.from);
+  const dateTo = formatDateParam(debouncedDateRange.to);
 
   logger.debug('Date Range Filter:', { dateFrom, dateTo, dateRange: debouncedDateRange });
   
-  const { data: ads = [], isLoading, dataUpdatedAt } = useAds({
+  const { data: ads = [], isLoading, truncated, dataUpdatedAt } = useAds({
     status: statusFilter === 'all' ? undefined : statusFilter as 'active' | 'inactive',
     dateFrom,
     dateTo
@@ -79,6 +74,7 @@ const Index = () => {
           dateRange={dateRange}
           onDateRangeChange={handleDateRangeChange}
           lastSyncedAt={lastSyncedAt}
+          isLoading={isLoading}
         />
 
         <main className="flex-1 p-6 space-y-6">
@@ -90,6 +86,12 @@ const Index = () => {
           </div>
 
           <OverviewCards ads={ads} />
+
+          {truncated && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-warning/10 border border-warning/20 text-sm text-warning">
+              Exibindo apenas os primeiros 500 anúncios. Refine os filtros para ver resultados completos.
+            </div>
+          )}
 
           <div className="relative">
             {isLoading && (

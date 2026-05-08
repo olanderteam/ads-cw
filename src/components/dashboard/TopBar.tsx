@@ -1,4 +1,4 @@
-import { Search, RefreshCw, User, Calendar } from "lucide-react";
+import { Search, RefreshCw, User, Calendar, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +13,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { logger } from "@/lib/logger";
 
 interface TopBarProps {
   search: string;
@@ -23,6 +22,7 @@ interface TopBarProps {
   dateRange?: { from: Date; to: Date };
   onDateRangeChange?: (range: { from: Date; to: Date } | undefined) => void;
   lastSyncedAt?: Date | null;
+  isLoading?: boolean;
 }
 
 export function TopBar({
@@ -33,8 +33,10 @@ export function TopBar({
   dateRange,
   onDateRangeChange,
   lastSyncedAt,
+  isLoading,
 }: TopBarProps) {
   const [relativeTime, setRelativeTime] = useState('');
+  const [calendarMonth, setCalendarMonth] = useState<Date>(dateRange?.from ?? new Date());
 
   useEffect(() => {
     const update = () => {
@@ -60,7 +62,7 @@ export function TopBar({
         <div className="relative max-w-xs w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search ads…"
+            placeholder="Buscar anúncios…"
             className="pl-9 h-9 text-sm bg-background"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -68,13 +70,13 @@ export function TopBar({
         </div>
 
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger className="w-32 h-9 text-sm">
+          <SelectTrigger className="w-36 h-9 text-sm">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">Ativos</SelectItem>
+            <SelectItem value="inactive">Inativos</SelectItem>
           </SelectContent>
         </Select>
 
@@ -82,7 +84,11 @@ export function TopBar({
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="h-9 text-sm justify-start text-left font-normal">
-                <Calendar className="mr-2 h-4 w-4" />
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <Calendar className="mr-2 h-4 w-4" />
+                )}
                 {dateRange?.from ? (
                   dateRange.to ? (
                     <>
@@ -106,10 +112,11 @@ export function TopBar({
                     onClick={() => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      const last7Days = new Date(today);
-                      last7Days.setDate(today.getDate() - 7);
-                      last7Days.setHours(0, 0, 0, 0);
-                      onDateRangeChange({ from: last7Days, to: today });
+                      const from = new Date(today);
+                      from.setDate(today.getDate() - 7);
+                      from.setHours(0, 0, 0, 0);
+                      setCalendarMonth(from);
+                      onDateRangeChange({ from, to: today });
                     }}
                   >
                     Últimos 7 dias
@@ -120,10 +127,11 @@ export function TopBar({
                     onClick={() => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      const last30Days = new Date(today);
-                      last30Days.setDate(today.getDate() - 30);
-                      last30Days.setHours(0, 0, 0, 0);
-                      onDateRangeChange({ from: last30Days, to: today });
+                      const from = new Date(today);
+                      from.setDate(today.getDate() - 30);
+                      from.setHours(0, 0, 0, 0);
+                      setCalendarMonth(from);
+                      onDateRangeChange({ from, to: today });
                     }}
                   >
                     Últimos 30 dias
@@ -134,10 +142,11 @@ export function TopBar({
                     onClick={() => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
-                      const last90Days = new Date(today);
-                      last90Days.setDate(today.getDate() - 90);
-                      last90Days.setHours(0, 0, 0, 0);
-                      onDateRangeChange({ from: last90Days, to: today });
+                      const from = new Date(today);
+                      from.setDate(today.getDate() - 90);
+                      from.setHours(0, 0, 0, 0);
+                      setCalendarMonth(from);
+                      onDateRangeChange({ from, to: today });
                     }}
                   >
                     Últimos 90 dias
@@ -146,9 +155,9 @@ export function TopBar({
                 <CalendarComponent
                   mode="range"
                   selected={dateRange}
-                  defaultMonth={dateRange?.from}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
                   onSelect={(range: any) => {
-                    // Handle range selection
                     if (range?.from && range?.to) {
                       const from = new Date(range.from);
                       from.setHours(0, 0, 0, 0);
@@ -163,7 +172,7 @@ export function TopBar({
                       onDateRangeChange({ from, to });
                     }
                   }}
-                  numberOfMonths={2}
+                  numberOfMonths={1}
                   locale={ptBR}
                 />
               </div>

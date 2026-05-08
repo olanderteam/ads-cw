@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { AdsTable } from "@/components/dashboard/AdsTable";
@@ -6,6 +6,7 @@ import { AdDetailsModal } from "@/components/dashboard/AdDetailsModal";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import type { Ad } from "@/data/mockAds";
 import { useAds } from "@/hooks/use-ads";
+import { formatDateParam } from "@/lib/utils";
 
 const ActiveAds = () => {
     const [search, setSearch] = useState("");
@@ -22,17 +23,19 @@ const ActiveAds = () => {
     const [debouncedDateRange, setDebouncedDateRange] = useState(dateRange);
 
     const handleDateRangeChange = useCallback((range: { from: Date; to: Date } | undefined) => {
-        if (range) {
-            setDateRange(range);
-            const timer = setTimeout(() => setDebouncedDateRange(range), 500);
-            return () => clearTimeout(timer);
-        }
+        if (range) setDateRange(range);
     }, []);
 
-    const dateFrom = `${debouncedDateRange.from.getFullYear()}-${String(debouncedDateRange.from.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.from.getDate()).padStart(2, '0')}`;
-    const dateTo = `${debouncedDateRange.to.getFullYear()}-${String(debouncedDateRange.to.getMonth() + 1).padStart(2, '0')}-${String(debouncedDateRange.to.getDate()).padStart(2, '0')}`;
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedDateRange(dateRange), 500);
+        return () => clearTimeout(timer);
+    }, [dateRange]);
+
+    const dateFrom = formatDateParam(debouncedDateRange.from);
+    const dateTo = formatDateParam(debouncedDateRange.to);
 
     const { data: ads = [], isLoading, dataUpdatedAt } = useAds({ status: 'active', dateFrom, dateTo });
+
     const lastSyncedAt = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
 
     const filteredAds = ads.filter((ad) => {
@@ -57,13 +60,14 @@ const ActiveAds = () => {
                     dateRange={dateRange}
                     onDateRangeChange={handleDateRangeChange}
                     lastSyncedAt={lastSyncedAt}
+                    isLoading={isLoading}
                 />
 
                 <main className="flex-1 p-6 space-y-6">
                     <div>
-                        <h1 className="text-lg font-semibold text-foreground">Active Ads</h1>
+                        <h1 className="text-lg font-semibold text-foreground">Anúncios Ativos</h1>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                            Currently running campaigns
+                            Campanhas em execução
                         </p>
                     </div>
 

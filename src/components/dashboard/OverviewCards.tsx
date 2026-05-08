@@ -23,38 +23,38 @@ export function OverviewCards({ ads }: OverviewCardsProps) {
 
   const cards = [
     {
-      label: "Total Leads",
+      label: "Total de Leads",
       value: totalLeads.toLocaleString(),
       icon: Users,
-      trend: `From ${ads.length} ads`,
+      trend: `De ${ads.length} anúncios`,
       color: "text-success",
     },
     {
-      label: "Cost per Lead",
+      label: "Custo por Lead",
       value: formatCurrency(avgCostPerLead, currency),
       icon: DollarSign,
-      trend: `Total spend: ${formatCurrency(totalSpend, currency)}`,
+      trend: `Gasto total: ${formatCurrency(totalSpend, currency)}`,
       color: "text-warning",
     },
     {
-      label: "Total Clicks",
+      label: "Total de Cliques",
       value: totalClicks.toLocaleString(),
       icon: MousePointerClick,
-      trend: `From ${ads.length} ads`,
+      trend: `De ${ads.length} anúncios`,
       color: "text-primary",
     },
     {
-      label: "Total Impressions",
+      label: "Total de Impressões",
       value: totalImpressions.toLocaleString(),
       icon: TrendingUp,
-      trend: `Avg CTR: ${avgCTR.toFixed(2)}%`,
+      trend: `CTR médio: ${avgCTR.toFixed(2)}%`,
       color: "text-info",
     },
     {
-      label: "Total Reach",
+      label: "Alcance Total",
       value: totalReach.toLocaleString(),
       icon: Eye,
-      trend: `From ${ads.length} ads`,
+      trend: `De ${ads.length} anúncios`,
       color: "text-purple-500",
     },
   ];

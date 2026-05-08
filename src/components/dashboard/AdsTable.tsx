@@ -35,24 +35,24 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       <div className="px-5 py-4 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground">Ads Library</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{ads.length} ads found</p>
+        <h2 className="text-sm font-semibold text-foreground">Biblioteca de Anúncios</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{ads.length} anúncios encontrados</p>
       </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-xs w-10">Creative</TableHead>
-              <TableHead className="text-xs">Headline</TableHead>
+              <TableHead className="text-xs w-10">Criativo</TableHead>
+              <TableHead className="text-xs">Título</TableHead>
               <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs text-right">Impressions</TableHead>
-              <TableHead className="text-xs text-right">Reach</TableHead>
-              <TableHead className="text-xs text-right">Clicks</TableHead>
+              <TableHead className="text-xs text-right">Impressões</TableHead>
+              <TableHead className="text-xs text-right">Alcance</TableHead>
+              <TableHead className="text-xs text-right">Cliques</TableHead>
               <TableHead className="text-xs text-right">CTR</TableHead>
-              <TableHead className="text-xs text-right">Spend</TableHead>
+              <TableHead className="text-xs text-right">Gasto</TableHead>
               <TableHead className="text-xs text-right">Leads</TableHead>
-              <TableHead className="text-xs text-right">Cost/Lead</TableHead>
-              <TableHead className="text-xs w-20">Actions</TableHead>
+              <TableHead className="text-xs text-right">Custo/Lead</TableHead>
+              <TableHead className="text-xs w-20">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -90,7 +90,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                         : "text-xs"
                     }
                   >
-                    {ad.status === "active" ? "Active" : "Inactive"}
+                    {ad.status === "active" ? "Ativo" : "Inativo"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground text-right">
@@ -123,7 +123,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
                     className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                   >
                     <Eye className="h-3.5 w-3.5" />
-                    View
+                    Ver
                   </button>
                 </TableCell>
               </TableRow>
@@ -131,7 +131,7 @@ export function AdsTable({ ads, onViewDetails }: AdsTableProps) {
             {ads.length === 0 && (
               <TableRow>
                 <TableCell colSpan={11} className="text-center py-10 text-sm text-muted-foreground">
-                  No ads found matching your filters.
+                  Nenhum anúncio encontrado para os filtros selecionados.
                 </TableCell>
               </TableRow>
             )}

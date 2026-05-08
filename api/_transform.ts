@@ -3,6 +3,8 @@
  * This is the single source of truth — do NOT duplicate this logic in the frontend.
  */
 
+// Mirror of src/types/ad.ts — kept separate because api/ runs in a different Vercel runtime
+// and cannot use the @/ alias. Keep both in sync when adding fields.
 export interface Ad {
   id: string;
   adId: string;
@@ -18,6 +20,12 @@ export interface Ad {
   pageName: string;
   tags: string[];
   notes: string;
+  // Campaign / adset hierarchy
+  campaignId: string;
+  campaignName: string;
+  campaignObjective: string;
+  adsetId: string;
+  adsetName: string;
   // Performance metrics — always present, default to 0 / 'BRL'
   impressions: number;
   clicks: number;
@@ -134,7 +142,7 @@ export function transformMetaAdToAd(metaAd: any): Ad {
   const clicks = parseInt(insights.clicks || '0', 10);
   const reach = parseInt(insights.reach || '0', 10);
   const spend = parseFloat(insights.spend || '0');
-  const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+  const ctr = parseFloat(insights.ctr || '0') || (impressions > 0 ? (clicks / impressions) * 100 : 0);
 
   const actions = insights.actions || [];
   const leads = getActionValue(actions, LEAD_ACTION_TYPES);
@@ -166,9 +174,14 @@ export function transformMetaAdToAd(metaAd: any): Ad {
     platform,
     startDate: metaAd.created_time || new Date().toISOString(),
     lastSeen: metaAd.updated_time || new Date().toISOString(),
-    pageName: 'Meta Ads',
+    pageName: metaAd.campaign?.name || 'Meta Ads',
     tags: [],
     notes: '',
+    campaignId: metaAd.campaign?.id || '',
+    campaignName: metaAd.campaign?.name || '',
+    campaignObjective: metaAd.campaign?.objective || '',
+    adsetId: metaAd.adset?.id || '',
+    adsetName: metaAd.adset?.name || '',
     impressions,
     clicks,
     reach,

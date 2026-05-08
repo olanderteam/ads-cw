@@ -84,23 +84,25 @@ export function AnalyticsSection({ ads }: AnalyticsSectionProps) {
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={adActivity}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 90%)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
               <Tooltip
                 contentStyle={{
                   fontSize: 12,
                   borderRadius: 8,
-                  border: "1px solid hsl(220, 13%, 90%)",
+                  border: "1px solid hsl(var(--border))",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  background: "hsl(var(--card))",
+                  color: "hsl(var(--foreground))",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="count"
-                stroke="hsl(220, 70%, 50%)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={2}
-                dot={{ r: 3, fill: "hsl(220, 70%, 50%)" }}
+                dot={{ r: 3, fill: "hsl(var(--primary))" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -114,18 +116,20 @@ export function AnalyticsSection({ ads }: AnalyticsSectionProps) {
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={adsByStatus}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 90%)" />
-              <XAxis dataKey="status" tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" />
-              <YAxis tick={{ fontSize: 11 }} stroke="hsl(220, 10%, 46%)" allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="status" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
               <Tooltip
                 contentStyle={{
                   fontSize: 12,
                   borderRadius: 8,
-                  border: "1px solid hsl(220, 13%, 90%)",
+                  border: "1px solid hsl(var(--border))",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  background: "hsl(var(--card))",
+                  color: "hsl(var(--foreground))",
                 }}
               />
-              <Bar dataKey="count" fill="hsl(220, 70%, 50%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

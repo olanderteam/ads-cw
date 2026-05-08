@@ -1,17 +1,16 @@
 import type { Ad } from '@/data/mockAds';
 
-/**
- * Parameters for fetching ads from Meta Marketing API
- */
 export interface FetchAdsParams {
   status?: 'all' | 'active' | 'inactive';
   dateFrom?: string;
   dateTo?: string;
 }
 
-/**
- * Meta API Error structure
- */
+export interface FetchAdsResult {
+  ads: Ad[];
+  truncated: boolean;
+}
+
 export interface MetaApiError {
   message: string;
   type: string;
@@ -20,11 +19,7 @@ export interface MetaApiError {
   fbtrace_id?: string;
 }
 
-/**
- * Fetch ads from Meta Marketing API via proxy endpoint.
- * Transformation is handled server-side by api/_transform.ts.
- */
-export const fetchAds = async (params: FetchAdsParams = {}): Promise<Ad[]> => {
+export const fetchAds = async (params: FetchAdsParams = {}): Promise<FetchAdsResult> => {
   const queryParams = new URLSearchParams();
 
   if (params.status && params.status !== 'all') {
@@ -61,5 +56,5 @@ export const fetchAds = async (params: FetchAdsParams = {}): Promise<Ad[]> => {
   }
 
   const data = await response.json();
-  return data.ads || [];
+  return { ads: data.ads || [], truncated: data.truncated || false };
 };

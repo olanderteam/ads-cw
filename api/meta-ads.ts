@@ -83,6 +83,8 @@ export default async function handler(
       'updated_time',
       'configured_status',
       'targeting{publisher_platforms}',
+      'adset{id,name}',
+      'campaign{id,name,objective}',
       'creative{id,name,title,body,image_url,video_id,thumbnail_url,object_url,link_url,call_to_action_type,object_story_spec}',
       `insights${
         dateFrom && dateTo
@@ -98,10 +100,12 @@ export default async function handler(
 
     // Add status filter if provided
     if (status && status !== 'all') {
-      const effectiveStatus = status === 'active' ? 'ACTIVE' : 'PAUSED';
+      const effectiveStatuses = status === 'active'
+        ? ['ACTIVE']
+        : ['PAUSED', 'ARCHIVED', 'DELETED', 'WITH_ISSUES', 'CAMPAIGN_PAUSED', 'ADSET_PAUSED'];
       params.append(
         'filtering',
-        JSON.stringify([{ field: 'effective_status', operator: 'IN', value: [effectiveStatus] }])
+        JSON.stringify([{ field: 'effective_status', operator: 'IN', value: effectiveStatuses }])
       );
     }
 
@@ -193,17 +197,20 @@ export default async function handler(
 
     // Transform using the canonical function from _transform.ts
     const transformedAds = allAds.map(transformMetaAdToAd);
+    const truncated = nextUrl !== null;
 
     return response.status(200).json({
       ads: transformedAds,
       total: transformedAds.length,
-      paging: null,
+      truncated,
     });
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('Proxy error name:', error instanceof Error ? error.name : typeof error);
+    console.error('Proxy error message:', error instanceof Error ? error.message : String(error));
+    console.error('Proxy error stack:', error instanceof Error ? error.stack : '');
     return response.status(500).json({
       error: 'INTERNAL_ERROR',
-      message: error instanceof Error ? error.message : 'Erro interno do servidor',
+      message: error instanceof Error ? (error.message || error.name || 'empty error') : 'Erro interno do servidor',
     });
   }
 }
